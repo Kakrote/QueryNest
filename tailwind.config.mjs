@@ -1,3 +1,5 @@
+import { Roboto } from 'next/font/google';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -11,6 +13,9 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily:{
+        roboto:['var(--font-roboto)', 'sans-serif'],
+      }
     },
   },
   plugins: [],
