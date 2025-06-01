@@ -1,5 +1,6 @@
-import { createQuestion } from "@/controllers/questionController";
+import { createQuestion,getAllQuestions } from "@/controllers/questionController";
 import { verifyAuth } from "@/middleware/auth";
+
 
 export async function POST(req) {
     const user = await verifyAuth(req);
@@ -25,4 +26,10 @@ export async function POST(req) {
         });
     }
 
+}
+
+
+export async function GET() {
+  const result = await getAllQuestions();
+  return new Response(JSON.stringify(result), { status: result.status });
 }

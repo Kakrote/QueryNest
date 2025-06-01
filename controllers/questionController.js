@@ -35,3 +35,97 @@ export const createQuestion = async ({ title, content, tags, authorId })=>{
         return {status:500,message:"Server Error !"}
     }
 }
+
+
+export const getAllQuestions = async () => {
+  try {
+    const questions = await prisma.question.findMany({
+      include: {
+        author: {
+          select: { id: true, name: true },
+        },
+        tags: true,
+        _count: {
+          select: {
+            answers: true,
+            comments: true,
+            vote: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return { status: 200, questions };
+  } catch (error) {
+    console.error("Error fetching questions:", error);
+    return { status: 500, message: "Internal Server Error" };
+  }
+};
+
+
+export const getUserQuestions = async (userId) => {
+  try {
+    const questions = await prisma.question.findMany({
+      where: {
+        authorId: userId,
+      },
+      include: {
+        tags: true,
+        _count: {
+          select: {
+            answers: true,
+            comments: true,
+            vote: true,
+          },
+        },
+      },
+    });
+
+    return { status: 200, questions };
+  } catch (error) {
+    console.error("Error fetching user's questions:", error);
+    return { status: 500, message: "Internal Server Error" };
+  }
+};
+
+
+export const getQuestionBySlug = async (slug) => {
+  try {
+    const question = await prisma.question.findUnique({
+      where: { slug },
+      include: {
+        author: {
+          select: { id: true, name: true },
+        },
+        tags: true,
+        answers: {
+          include: {
+            author: {
+              select: { id: true, name: true },
+            },
+            comments: true,
+            votes: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+        comments: {
+          include: {
+            author: true,
+          },
+        },
+        vote: true,
+      },
+    });
+
+    if (!question) return { status: 404, message: "Question not found" };
+    return { status: 200, question };
+  } catch (error) {
+    console.error("Error fetching question detail:", error);
+    return { status: 500, message: "Internal Server Error" };
+  }
+};
