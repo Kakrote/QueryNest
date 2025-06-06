@@ -129,3 +129,64 @@ export const getQuestionBySlug = async (slug) => {
     return { status: 500, message: "Internal Server Error" };
   }
 };
+
+
+
+export const getQuestionsByTag = async (tagName) => {
+  if (!tagName) return { status: 400, message: "Tag is required." };
+
+  try {
+    const questions = await prisma.question.findMany({
+      where: {
+        tags: {
+          some: {
+            name: tagName,
+          },
+        },
+      },
+      include: {
+        author: {
+          select: { name: true, email: true },
+        },
+        tags: true,
+        answers: true,
+        vote: true,
+      },
+    });
+
+    return { status: 200, data: questions };
+  } catch (error) {
+    console.log("Tag filter error:", error);
+    return { status: 500, message: "Server error." };
+  }
+};
+
+
+
+export const searchQuestions = async (query) => {
+  if (!query) return { status: 400, message: "Query is required." };
+
+  try {
+    const questions = await prisma.question.findMany({
+      where: {
+        OR: [
+          { title: { contains: query, mode: "insensitive" } },
+          { content: { contains: query, mode: "insensitive" } },
+        ],
+      },
+      include: {
+        author: {
+          select: { name: true, email: true },
+        },
+        tags: true,
+        answers: true,
+        vote: true,
+      },
+    });
+
+    return { status: 200, data: questions };
+  } catch (error) {
+    console.log("Search error:", error);
+    return { status: 500, message: "Server error." };
+  }
+};
