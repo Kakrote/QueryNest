@@ -37,28 +37,44 @@ export const createQuestion = async ({ title, content, tags, authorId })=>{
 }
 
 
-export const getAllQuestions = async () => {
+export const getAllQuestions = async ({ page = 1, limit = 10 }) => {
   try {
-    const questions = await prisma.question.findMany({
-      include: {
-        author: {
-          select: { id: true, name: true },
-        },
-        tags: true,
-        _count: {
-          select: {
-            answers: true,
-            comments: true,
-            vote: true,
+    const skip = (page - 1) * limit;
+
+    const [questions, total] = await Promise.all([
+      prisma.question.findMany({
+        skip,
+        take: limit,
+        include: {
+          author: {
+            select: { id: true, name: true },
+          },
+          tags: true,
+          answers: true,
+          _count: {
+            select: {
+              answers: true,
+              comments: true,
+              vote: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      prisma.question.count(),
+    ]);
 
-    return { status: 200, questions };
+    return {
+      status: 200,
+      data: {
+        questions,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   } catch (error) {
     console.error("Error fetching questions:", error);
     return { status: 500, message: "Internal Server Error" };
