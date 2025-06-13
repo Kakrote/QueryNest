@@ -2,7 +2,7 @@ import { Groq } from 'groq-sdk';
 import { verifyAuth } from '@/middleware/auth'; 
 
 const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY, /
+  apiKey: process.env.GROQ_API_KEY, 
 });
 
 export async function POST(req) {
@@ -23,9 +23,10 @@ export async function POST(req) {
       messages: [
         {
           role: "user",
-          content: `Correct the spelling and grammar of this text:\n"${text}"`,
+          content: `Correct the grammar, spelling, and logic of the following sentence. Return ONLY the corrected version, with NO explanation, quotes, or formatting:\n\n${text}`,
         },
       ],
+      temperature:0.3,
     });
 
     const corrected = completion.choices[0]?.message?.content;
