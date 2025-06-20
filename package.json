@@ -10,13 +10,16 @@
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",
+    "@reduxjs/toolkit": "^2.8.2",
+    "axios": "^1.10.0",
     "bcrypt": "^6.0.0",
     "groq-sdk": "^0.23.0",
     "jsonwebtoken": "^9.0.2",
     "next": "^15.3.2",
     "prisma": "^6.8.2",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-redux": "^9.2.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
