@@ -36,19 +36,26 @@ export const createQuestion = async ({ title, content, tags, authorId })=>{
     }
 }
 
-
-export const getAllQuestions = async ({ page = 1, limit = 10 }) => {
+export const getAllQuestions = async ({ page = 1, limit = 10, sort = "latest" }) => {
   try {
     const skip = (page - 1) * limit;
+
+    // 🔁 Dynamic sort logic
+    let orderBy;
+    if (sort === "liked") {
+      orderBy = { vote: { _count: "desc" } };
+    } else if (sort === "frequent") {
+      orderBy = { answers: { _count: "desc" } };
+    } else {
+      orderBy = { createdAt: "desc" }; // default: latest
+    }
 
     const [questions, total] = await Promise.all([
       prisma.question.findMany({
         skip,
         take: limit,
         include: {
-          author: {
-            select: { id: true, name: true },
-          },
+          author: { select: { id: true, name: true } },
           tags: true,
           answers: true,
           _count: {
@@ -59,9 +66,7 @@ export const getAllQuestions = async ({ page = 1, limit = 10 }) => {
             },
           },
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy,
       }),
       prisma.question.count(),
     ]);
@@ -80,6 +85,7 @@ export const getAllQuestions = async ({ page = 1, limit = 10 }) => {
     return { status: 500, message: "Internal Server Error" };
   }
 };
+
 
 
 export const getUserQuestions = async (userId) => {

@@ -1,9 +1,11 @@
-import Image from "next/image";
+"use client"
+import QuestionsList from "@/components/QuestionsList"
 
-export default function Home() {
+
+export default function LandingPage() {
+
+
   return (
-    <main>
-      
-    </main>
-  );
+    <QuestionsList/>
+  )
 }

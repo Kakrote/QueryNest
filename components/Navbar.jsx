@@ -1,77 +1,64 @@
 'use client';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { logout } from '@/redux/slices/authSlice';
+import { LucideMenu } from 'lucide-react';
+import { SearchIcon, LucideUserCircle2, Bell } from 'lucide-react';
 
-export default function Navbar() {
+export default function Navbar({ toggleMenu }) {
   const dispatch = useAppDispatch();
   const { user, token } = useAppSelector((s) => s.auth);
 
   return (
-    <header className="bg-white border-b sticky top-0 z-50">
-      <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
-        {/* Logo */}
-        <Link href="/" className="text-xl font-bold text-blue-600">
-          StackClone
-        </Link>
+    <nav className='fixed top-0 w-full h-[60px] z-[999] flex    items-center justify-between px-4 py-2 border-b border-blue-200  backdrop-blur-md shadow-sm'>
+      <div className="leftside flex gap-3">
 
-        {/* Right‑side actions */}
+        {/* menu toggler */}
+        <div className='md:hidden'>
+
+          <button
+            onClick={toggleMenu}
+            className='text-blue-700  hover:text-blue-900 active:scale-105 transition duration-150'
+          >
+            <LucideMenu />
+          </button>
+        </div>
+
+        {/* logo */}
+        <div className="flex-1 flex justify-center md:justify-start">
+          <h1 className="text-lg text-center md:text-2xl text-blue-800 font-semibold tracking-wide">
+            QueryNest
+          </h1>
+        </div>
+      </div>
+
+      <div className="rightside flex gap-2">
+        <span className='p-2'><SearchIcon /></span>
         {!token ? (
-          <div className="space-x-3">
-            <Link
-              href="/login"
-              className="px-4 py-1 rounded border text-md hover:bg-gray-100 text-[#5D7BFF]  border-[#5D7BFF] "
-            >
-              Log In
+          <div className='flex space-x-3 items-center justify-center'>
+            <Link href={'/auth/login'}>
+              <button
+                className='text-center border p-2 rounded-md border-[#4255FF] text-[#5D7BFF] font-bold text-[15px] leading-[150%] tracking-tight'>
+                Log In
+              </button>
             </Link>
-            <Link
-              href="/signup"
-              className="px-4 py-1 rounded bg-blue-600 text-white text-md"
-            >
-              Sign Up
-            </Link>
+            <Link href={'/auth/signup'}>
+            <button
+              className='text-center border bg-[#4255FF] p-2 rounded-md text-[#ffff] font-bold text-[15px] leading-[150%] tracking-tight'>
+              sign up
+            </button>
+                </Link>
           </div>
         ) : (
-          <div className="flex items-center gap-4">
-            <Link
-              href="/ask-question"
-              className="hidden sm:inline-block px-4 py-1 rounded bg-green-600 text-white text-sm"
-            >
-              Ask Question
-            </Link>
+          <div className='flex gap-2'>
+            <span className='text-center flex items-center '><LucideUserCircle2 /></span>
+            <span className='flex items-center'><Bell /></span>
+            <button className='border p-2 rounded-md border-[#094EFF] max-[397px]:hidden'>
+              Ask Question
+            </button>
 
-            {/* Avatar dropdown */}
-            <div className="relative group">
-              <Image
-                src={`https://ui-avatars.com/api/?name=${user.name}`}
-                width={32}
-                height={32}
-                alt="avatar"
-                className="rounded-full cursor-pointer"
-              />
-              <ul className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition">
-                <li>
-                  <Link
-                    href="/dashboard"
-                    className="block px-4 py-2 hover:bg-gray-100 text-sm"
-                  >
-                    Dashboard
-                  </Link>
-                </li>
-                <li>
-                  <button
-                    onClick={() => dispatch(logout())}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                  >
-                    Log Out
-                  </button>
-                </li>
-              </ul>
-            </div>
           </div>
         )}
-      </nav>
-    </header>
+      </div>
+    </nav>
   );
 }

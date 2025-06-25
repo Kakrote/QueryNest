@@ -30,6 +30,9 @@ export const registerUser=async({name,email,password})=>{
 
 export const loginUser=async({email,password})=>{
     if(!email||!password) return {status:401,message:"these filed cant be empty"}
+    console.log("login conroller active ")
+    console.log("email:",email)
+    console.log("password: ",password)
     try{
         const user=await prisma.user.findUnique({where:{email}});
         if(!user) return {
@@ -42,7 +45,7 @@ export const loginUser=async({email,password})=>{
             message:"Wrong email or Password"
         }
         const JWT_SECRET=process.env.JWT_SECRET
-        const token=await jwt.sign({userId:user.id,email:user.email},JWT_SECRET,{expiresIn:"10d"})
+        const token=jwt.sign({userId:user.id,email:user.email},JWT_SECRET,{expiresIn:"10d"})
         console.log("my token: ",token)
         return { status: 201, message: 'User registered', token, user };
 

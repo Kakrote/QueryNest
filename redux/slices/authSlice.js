@@ -5,12 +5,18 @@ import axios from "axios";
 export const loginUser = createAsyncThunk(
     'auth/loginUser',
     async (craditionals, { rejectWithValue }) => {
+        localStorage.removeItem('token')
         try {
-            const res = await axios.post('/auth/login', craditionals);
-            localStorage.setItem("token", res.data.token); // saving the token in the localstorage
+            console.log("In auth slice ")
+            const res = await axios.post('/api/auth/login', craditionals);
+            // localStorage.setItem("token", res.data.token); // saving the token in the localstorage
+            console.log("cradintials: ",craditionals)
+            console.log("geeting out from auth slice")
+
             return res.data;
         }
         catch (error) {
+            console.log("check error")
             return rejectWithValue(error.response.data.message);
         }
     }
