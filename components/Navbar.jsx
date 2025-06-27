@@ -9,7 +9,7 @@ export default function Navbar({ toggleMenu }) {
   const { user, token } = useAppSelector((s) => s.auth);
 
   return (
-    <nav className='fixed top-0 w-full h-[60px] z-[999] flex    items-center justify-between px-4 py-2 border-b border-blue-200  backdrop-blur-md shadow-sm'>
+    <nav className='fixed top-0 w-full h-[60px] z-[999] flex bg-[#ffff]   items-center justify-between px-4 py-2 border-b border-blue-200  backdrop-blur-md shadow-sm'>
       <div className="leftside flex gap-3">
 
         {/* menu toggler */}

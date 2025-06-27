@@ -31,7 +31,7 @@ const QuestionsList = () => {
     }
 
     return (
-        <div className=" relative top-14">
+        <div className="relative top-14">
 
             <div className='h-[160px] border-b w-full relative space-y-10 p-3 '>
 
