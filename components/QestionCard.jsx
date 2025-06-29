@@ -32,7 +32,7 @@ const QuestionCard = ({ question, onClick }) => {
       <div>
         <h3 className='text-[#0C2AF2] px-2 text-lg'>{title}</h3>
         <div className='px-2'>
-          <p className='text-[12px] text-[#343D4E]'>{content}</p>
+          <p className='text-[12px] line-clamp-2   text-[#343D4E]'>{content}</p>
         </div>
       </div>
 
@@ -40,7 +40,7 @@ const QuestionCard = ({ question, onClick }) => {
       <div className='p-2 mt-1 space-x-2'>
         {tags.map((tag, index) => (
           <span
-            key={index}
+            key={tag.id || tag.name}
             className='text-sm bg-[#E4E6FA] text-[#0f0f0f] px-2 py-0.5 rounded'>
             {tag.name}
           </span>

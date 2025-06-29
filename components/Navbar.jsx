@@ -52,10 +52,6 @@ export default function Navbar({ toggleMenu }) {
           <div className='flex gap-2'>
             <span className='text-center flex items-center '><LucideUserCircle2 /></span>
             <span className='flex items-center'><Bell /></span>
-            <button className='border p-2 rounded-md border-[#094EFF] max-[397px]:hidden'>
-              Ask Question
-            </button>
-
           </div>
         )}
       </div>

@@ -27,7 +27,10 @@ const QuestionsList = () => {
 
     const handleAskQuestion = () => {
         if (!user) router.push('/auth/login')
-        console.log("ask question")
+        else {
+            console.log("ask Question")
+            router.push('/questions/askQuestion')
+        }
     }
 
     return (
@@ -62,17 +65,17 @@ const QuestionsList = () => {
 
             {/* Questions List */}
             {loading && <p>Loading...</p>}
-            {error && <p className='text-red-700'>{error}</p> }
+            {error && <p className='text-red-700'>{error}</p>}
             {
-                questions.length>0?(
-                    questions.map((q)=>(
+                questions.length > 0 ? (
+                    questions.map((q) => (
                         <QuestionCard
-                        key={q.id}
-                        question={q}
-                        onClick={()=>handleQuestionClick(q.id)}
+                            key={q.id||q.title}
+                            question={q}
+                            onClick={() => handleQuestionClick(q.id)}
                         />
                     ))
-                ):(
+                ) : (
                     <p>No Questions Found</p>
                 )
             }

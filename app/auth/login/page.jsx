@@ -17,7 +17,7 @@ const Login = () => {
 
     useEffect(() => {
       if(token){
-        router.push('/')
+        router.push('/questions')
       }
     }, [token,router])
 

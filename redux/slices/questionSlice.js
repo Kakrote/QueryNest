@@ -1,6 +1,29 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+// creating questions
+export const askQuestion = createAsyncThunk(
+    'question/askQuestion',
+    async (questionData, { rejectWithValue }) => {
+        try {
+            const token=localStorage.getItem('token')
+            // console.log("hit ask Question api")
+            // console.log('Question data: ',questionData)
+            const res = await axios.post('/api/questions', questionData,{
+                headers:{
+                    Authorization:`Bearer ${token}`
+                }
+            })
+            // console.log("response form askqouestion api: ",res)
+            return res.data;
+        }
+        catch (error) {
+            return rejectWithValue(error.response?.data?.message || "faild to Create the Question try again letter")
+        }
+    }
+)
+
+
 // fetching all the questions
 export const fetchQuestions = createAsyncThunk(
     'question/fetchQuestions',
@@ -25,8 +48,15 @@ const questionSlice = createSlice({
         totalPages: 1,
         loading: false,
         error: null,
+        success:false,
     },
-    reducers: {},
+    reducers: {
+        resetQuestionState: (state) => {
+            state.loading = false;
+            state.success = false;
+            state.error = null;
+        },
+    },
     extraReducers: (builder) => {
         builder
             .addCase(fetchQuestions.pending, (state) => {
@@ -43,8 +73,24 @@ const questionSlice = createSlice({
             .addCase(fetchQuestions.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
-            });
+            })
+            .addCase(askQuestion.pending, (state) => {
+                state.loading = true;
+                state.success = false;
+                state.error = null;
+            })
+            .addCase(askQuestion.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = true;
+                state.questions.unshift(action.payload); // optional: optimistic update
+            })
+            .addCase(askQuestion.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            });;
     }
 })
+
+export const { resetQuestionState } = questionSlice.actions;
 
 export default questionSlice.reducer;
