@@ -1,7 +1,8 @@
 "use client"
 import React from 'react'
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState } from 'react';
+import { correctText } from '@/utils/correctText';
+import { set, useForm } from 'react-hook-form';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { askQuestion } from '@/redux/slices/questionSlice';
 import { useRouter } from 'next/navigation';
@@ -12,23 +13,46 @@ import axios from 'axios';
 const qoute = ["It is not the answer that enlightens, but the question."];
 
 const askQuestions = () => {
+    const [showFixOption, setShowFixOption] = useState(false);
+    const [corrections, setCorrections] = useState({});
+    const [fixing, setFixing] = useState(false);
+
     const { loading, success, error } = useAppSelector((s) => s.question);
     const dispatch = useAppDispatch();
     const router = useRouter();
-    const { register, handleSubmit, reset, formState: { errors } } = useForm();
+    const { register, handleSubmit, reset, formState: { errors }, getValues, setValue } = useForm();
 
-    const onSubmit=async (data)=>{
-        const payload={
+
+    const handleFixGrammar = async () => {
+        setFixing(true);
+        const values = getValues();
+        const [fixedTitle, fixedContent, fixedTags] = await Promise.all([
+            correctText(values.title),
+            correctText(values.content),
+            correctText(values.tags)
+        ]);
+        setFixing(false);
+        setCorrections({
+            title: fixedTitle,
+            content: fixedContent,
+            tags: fixedTags
+        });
+        setShowFixOption(true);
+
+    }
+
+    const onSubmit = async (data) => {
+        const payload = {
             ...data,
-            tags:data.tags.split(',').map(tag=>tag.trim())
+            tags: data.tags.split(',').map(tag => tag.trim())
         };
         await dispatch(askQuestion(payload));
-        if(success){
+        if (success) {
             reset();
             router.push('/')
         }
     }
-    
+
     return (
         <main className='mt-14'>
             <div className='h-[80px] py-2 border-b'>
@@ -82,6 +106,62 @@ const askQuestions = () => {
                     {errors.tags && <span className="text-red-500">At least one tag is required</span>}
                 </div>
 
+                {/* Fix Grammar Button */}
+                <button
+                    type="button"
+                    onClick={handleFixGrammar}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+                    disabled={fixing}
+                >
+                    {fixing ? "Fixing..." : "✨ Fix Grammar & Spelling"}
+                </button>
+
+                {/* AI Correction Preview */}
+                {showFixOption && (
+                    <div className="p-3 mt-4 border rounded bg-gray-50">
+                        <p className="font-semibold mb-2">AI-Suggested Corrections:</p>
+
+                        <div className="mb-2">
+                            <strong>Title:</strong>
+                            <p className="italic text-blue-700">{corrections.title}</p>
+                        </div>
+
+                        <div className="mb-2">
+                            <strong>Content:</strong>
+                            <p className="italic text-blue-700 whitespace-pre-wrap">{corrections.content}</p>
+                        </div>
+
+                        <div className="mb-2">
+                            <strong>Tags:</strong>
+                            <p className="italic text-blue-700">{corrections.tags}</p>
+                        </div>
+
+                        <div className="flex gap-4 mt-2">
+                            <button
+                                type="button"
+                                className="px-3 py-1 bg-green-600 text-white rounded"
+                                onClick={() => {
+                                    setValue("title", corrections.title);
+                                    setValue("content", corrections.content);
+                                    setValue("tags", corrections.tags);
+                                    setShowFixOption(false);
+                                }}
+                            >
+                                ✅ Use this version
+                            </button>
+
+                            <button
+                                type="button"
+                                className="px-3 py-1 bg-gray-400 text-white rounded"
+                                onClick={() => setShowFixOption(false)}
+                            >
+                                ❌ Cancel
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* submiting the question */}
                 <button
                     type="submit"
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50"
