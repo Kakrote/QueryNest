@@ -6,7 +6,8 @@ export const askQuestion = createAsyncThunk(
     'question/askQuestion',
     async (questionData, { rejectWithValue }) => {
         try {
-            const token=localStorage.getItem('token')
+            // const token=localStorage.getItem('token')
+            const token=getState().auth.token; // Assuming you have an auth slice with a token
             // console.log("hit ask Question api")
             // console.log('Question data: ',questionData)
             const res = await axios.post('/api/questions', questionData,{

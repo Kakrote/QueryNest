@@ -58,7 +58,7 @@ export async function DELETE(req) {
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
-  const questionId = searchParams.get("questionId");
+  const questionId = searchParams.get("questionId");// its id for feture checks
 
   const result = await getAnswersByQuestionId(questionId);
 

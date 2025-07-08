@@ -23,9 +23,9 @@ const QuestionsList = () => {
         setLocalPage(1); // Reset to page 1 if filter changes
     }, [filter]);
 
-    const handleQuestionClick = (id) => {
+    const handleQuestionClick = (id,slug) => {
         if (!user) router.push("/auth/login");
-        else router.push(`/question/${id}`);
+        else router.push(`/questions/${id}/${slug}`); // Navigate to question details page
     };
 
     const handleAskQuestion = () => {
@@ -77,7 +77,7 @@ const QuestionsList = () => {
                         <QuestionCard
                             key={q.id || q.title}
                             question={q}
-                            onClick={() => handleQuestionClick(q.id)}
+                            onClick={() => handleQuestionClick(q.id,q.slug)}
                         />
                     ))}
 

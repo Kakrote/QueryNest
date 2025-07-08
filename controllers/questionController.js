@@ -57,7 +57,7 @@ export const getAllQuestions = async ({ page = 1, limit = 10, sort = "latest" })
         include: {
           author: { select: { id: true, name: true } },
           tags: true,
-          answers: true,
+          // answers: true,
           _count: {
             select: {
               answers: true,
