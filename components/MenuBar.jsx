@@ -12,15 +12,13 @@ const navItems = [
 ];
 
 const MenuBar = ({ isOpen, closeSideBar }) => {
-  console.log("isOpen",isOpen)
-  console.log("closeSideBar",closeSideBar)
-  console.log("isOpen",isOpen)
+
   const pathname = usePathname();
   const router = useRouter();
   const { token } = useAppSelector((s) => s.auth);
 
   return (
-    <div className="w-[180px] h-full space-y-6 bg-[#e2e8f0] text-[#1e1828] rounded-md shadow-lg p-4">
+    <div className="w-[200px] h-[290px] mt-14  space-y-6 bg-[#e2e8f0] text-[#1e1828] rounded-md shadow-lg p-4">
       <div className="space-y-1">
         {!token && (
           <NavItem
@@ -66,7 +64,7 @@ const NavItem = ({ name, path, icon: Icon, pathname, router, closeSideBar }) => 
     <div
       onClick={handelNavClick}
       className={`relative flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-all duration-300
-        ${isActive ? 'bg-blue-600 text-white font-medium shadow-md' : 'hover:bg-blue-100 hover:text-blue-700 text-gray-800'}
+        ${isActive ? ' bg-blue-600 text-white font-medium shadow-md' : 'hover:bg-blue-100 hover:text-blue-700 text-gray-800'}
       `}
     >
       {/* Left border indicator */}

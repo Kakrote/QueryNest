@@ -11,6 +11,9 @@
   "dependencies": {
     "@prisma/client": "^6.8.2",
     "@reduxjs/toolkit": "^2.8.2",
+    "@tiptap/extension-image": "^3.0.2",
+    "@tiptap/react": "^3.0.1",
+    "@tiptap/starter-kit": "^3.0.1",
     "axios": "^1.10.0",
     "bcrypt": "^6.0.0",
     "groq-sdk": "^0.23.0",

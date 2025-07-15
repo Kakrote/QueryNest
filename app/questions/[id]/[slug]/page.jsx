@@ -3,10 +3,12 @@ import { useParams } from 'next/navigation';
 import React from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { ThumbsUp, ThumbsDown, Share2Icon } from 'lucide-react';
+import { Controller, useForm } from 'react-hook-form';
+
 
 const QuestionPage = () => {
   const { id } = useParams();
-
+  const { control, handleSubmit } = useForm();
   const question = useAppSelector((state) =>
     state.question.questions.find((q) => String(q.id) === String(id))
   );
@@ -39,10 +41,10 @@ const QuestionPage = () => {
       {/* Question Card */}
       <section className='mt-6 border-b pb-4'>
         {/* Title */}
-        <h1 className='text-3xl font-semibold text-[#0C2AF2]'>{title}</h1>
+        <h1 className='text-3xl  text-[#0C2AF2]'>{title}</h1>
 
         {/* Vote & Answer count */}
-        <div className='mt-2 flex space-x-6 text-gray-700 text-[15px]'>
+        <div className='mt-2 flex space-x-6 text-gray-700 text-[13px]'>
           <span>{vote} Vote{vote !== 1 && 's'}</span>
           <span>{answers} Answer{answers !== 1 && 's'}</span>
         </div>
