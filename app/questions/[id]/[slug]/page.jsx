@@ -4,11 +4,15 @@ import React from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { ThumbsUp, ThumbsDown, Share2Icon } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
+import TiptapEditor from '@/components/TiptapEditor';
 
 
 const QuestionPage = () => {
   const { id } = useParams();
   const { control, handleSubmit } = useForm();
+  const onSubmit = (data) => {
+    console.log("Answer: ", data.answer)
+  }
   const question = useAppSelector((state) =>
     state.question.questions.find((q) => String(q.id) === String(id))
   );
@@ -30,7 +34,7 @@ const QuestionPage = () => {
   } = _count;
 
   return (
-    <main className='mt-16 px-4 max-w-5xl mx-auto'>
+    <main className='mt-16 px-4 w-full mx-auto'>
       {/* Header Action */}
       <div className='flex justify-end items-center py-4 border-b'>
         <button className='px-4 py-2 bg-[#4255FF] text-white text-sm rounded hover:bg-[#3a4ce3] active:scale-95 transition'>
@@ -102,8 +106,24 @@ const QuestionPage = () => {
         </div>
 
         {/* Answer input area (placeholder) */}
-        <div className='bg-gray-50 p-4 border rounded text-gray-500'>
-          Answer writing UI coming soon...
+        <div className=''>
+          <form onSubmit={handleSubmit(onSubmit)} className="bg-gray-50 p-4 border rounded">
+            <Controller
+              name="answer"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <TiptapEditor value={field.value} onChange={field.onChange} />
+              )}
+            />
+
+            <button
+              type="submit"
+              className="mt-4 px-4 py-2 bg-[#0946FF] text-white rounded hover:bg-[#083be0] active:scale-95 transition"
+            >
+              Submit Answer
+            </button>
+          </form>
         </div>
       </section>
 

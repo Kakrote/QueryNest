@@ -83,7 +83,7 @@ const QuestionsList = () => {
 
                     {/* Pagination - Page Numbers */}
                     {totalPages > 1 && (
-                        <div className="flex justify-center gap-2 mt-6">
+                        <div className="flex p-2 justify-center gap-2 mt-6">
                             {Array.from({ length: totalPages }, (_, i) => (
                                 <button
                                     key={i + 1}

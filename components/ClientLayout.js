@@ -39,7 +39,7 @@ const ClientLayout = ({ children }) => {
       {isOpen && (
         <div
           ref={sidebarRef}
-          className="fixed top-14 left-0 z-50 block lg:hidden"
+          className="fixed left-0 z-50 block lg:hidden"
         >
           <MenuBar isOpen={isOpen} closeSideBar={() => setIsOpen(false)} />
         </div>
