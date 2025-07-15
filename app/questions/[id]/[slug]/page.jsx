@@ -5,13 +5,17 @@ import { useAppSelector } from '@/store/hooks';
 import { ThumbsUp, ThumbsDown, Share2Icon } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
 import TiptapEditor from '@/components/TiptapEditor';
+import axios from 'axios';
 
 
 const QuestionPage = () => {
   const { id } = useParams();
   const { control, handleSubmit } = useForm();
-  const onSubmit = (data) => {
-    console.log("Answer: ", data.answer)
+  const token=localStorage.getItem('token')
+  const onSubmit = async (data) => {
+    // console.log("Answer: ", data.answer)
+    console.log(data)
+    // data ke andar mata data missing hai like userId and question slug 
   }
   const question = useAppSelector((state) =>
     state.question.questions.find((q) => String(q.id) === String(id))
