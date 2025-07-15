@@ -19,3 +19,44 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+/* Tailwind Prose Customization for Tiptap */
+.prose pre {
+  background-color: #1e1e1e; /* dark background */
+  color: #d4d4d4; /* light text */
+  padding: 1rem;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.prose code {
+  background-color: #f5f5f5;
+  color: #d6336c;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+}
+
+.prose h1 {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  color: #0C2AF2;
+  margin-top: 1.5rem;
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-top: 1.25rem;
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 500;
+  color: #333;
+  margin-top: 1rem;
+}
