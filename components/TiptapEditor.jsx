@@ -43,7 +43,7 @@ const TiptapEditor = ({ value, onChange }) => {
   return (
     <div className="w-full border rounded-md shadow-sm overflow-hidden bg-white">
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-2 p-3 border-b bg-gray-50">
+      <div className="flex flex-wrap gap-2 p-3 border-b bg-gray-100">
         {toolbarButton('Bold', Bold, () => editor.chain().focus().toggleBold().run(), editor.isActive('bold'))}
         {toolbarButton('Italic', Italic, () => editor.chain().focus().toggleItalic().run(), editor.isActive('italic'))}
         {toolbarButton('Strikethrough', Strikethrough, () => editor.chain().focus().toggleStrike().run(), editor.isActive('strike'))}
@@ -62,8 +62,9 @@ const TiptapEditor = ({ value, onChange }) => {
       </div>
 
       {/* Editor Content */}
-      <div className="min-h-[160px] p-4 focus:outline-none prose prose-sm max-w-none">
-        <EditorContent editor={editor} />
+      <div className="min-h-[160px] bg-[#dcdce4ee] p-1  focus:outline-none prose prose-sm max-w-none">
+        <EditorContent editor={editor}
+        className='' />
       </div>
     </div>
   );
