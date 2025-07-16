@@ -20,7 +20,7 @@ const QuestionPage = () => {
     //   ...data,
     //   questionslug:slug, 
     // }
-    // const res=await axios.post('/api/answers')
+    // const res=await axios.post('/api/answers') 
   }
   const question = useAppSelector((state) =>
     state.question.questions.find((q) => String(q.id) === String(id))
