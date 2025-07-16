@@ -9,13 +9,18 @@ import axios from 'axios';
 
 
 const QuestionPage = () => {
-  const { id } = useParams();
+  const { id,slug} = useParams(); // question id and slug
   const { control, handleSubmit } = useForm();
   const token=localStorage.getItem('token')
   const onSubmit = async (data) => {
     // console.log("Answer: ", data.answer)
     console.log(data)
     // data ke andar mata data missing hai like userId and question slug 
+    // const payload={
+    //   ...data,
+    //   questionslug:slug, 
+    // }
+    // const res=await axios.post('/api/answers')
   }
   const question = useAppSelector((state) =>
     state.question.questions.find((q) => String(q.id) === String(id))
