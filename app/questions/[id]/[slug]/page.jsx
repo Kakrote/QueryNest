@@ -6,21 +6,26 @@ import { ThumbsUp, ThumbsDown, Share2Icon } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
 import TiptapEditor from '@/components/TiptapEditor';
 import axios from 'axios';
+// import { headers } from 'next/headers';
 
 
 const QuestionPage = () => {
-  const { id,slug} = useParams(); // question id and slug
+  const { id, slug } = useParams(); // question id and slug
   const { control, handleSubmit } = useForm();
-  const token=localStorage.getItem('token')
+  const token = localStorage.getItem('token')
   const onSubmit = async (data) => {
     // console.log("Answer: ", data.answer)
     console.log(data)
     // data ke andar mata data missing hai like userId and question slug 
-    // const payload={
-    //   ...data,
-    //   questionslug:slug, 
-    // }
-    // const res=await axios.post('/api/answers') 
+    const payload = {
+      ...data,
+      questionslug: slug,
+    }
+    const res = await axios.post('/api/answers', payload, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
   }
   const question = useAppSelector((state) =>
     state.question.questions.find((q) => String(q.id) === String(id))
@@ -118,7 +123,7 @@ const QuestionPage = () => {
         <div className=''>
           <form onSubmit={handleSubmit(onSubmit)} className="bg-gray-50 p-4 border rounded">
             <Controller
-              name="answer"
+              name="content"
               control={control}
               defaultValue=""
               render={({ field }) => (
