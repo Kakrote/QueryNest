@@ -3,6 +3,7 @@ import { slugify } from "@/utils/slugify";
 
 export const createQuestion = async ({ title, content, tags, authorId })=>{
     if (!title || !content || !tags) return { status: 400, message: "fileds are required " };
+    console.log("creating Question")
     try {
         const slug = slugify(title);
         const tagRecords = await Promise.all(

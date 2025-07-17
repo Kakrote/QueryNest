@@ -42,11 +42,14 @@ const askQuestions = () => {
     }
 
     const onSubmit = async (data) => {
+        console.log("Ask Question button hit")
         const payload = {
             ...data,
             tags: data.tags.split(',').map(tag => tag.trim())
         };
+        console.log("verfying payload: ",payload)
         await dispatch(askQuestion(payload));
+        console.log("retruning from api call")
         if (success) {
             reset();
             router.push('/')

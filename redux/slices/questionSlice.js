@@ -4,18 +4,20 @@ import axios from "axios";
 // creating questions
 export const askQuestion = createAsyncThunk(
     'question/askQuestion',
-    async (questionData, { rejectWithValue }) => {
+    async (questionData, { rejectWithValue,getState }) => {
         try {
             // const token=localStorage.getItem('token')
+            console.log("enter the try block")
             const token=getState().auth.token; // Assuming you have an auth slice with a token
-            // console.log("hit ask Question api")
-            // console.log('Question data: ',questionData)
+            console.log("get the token: ",token)
+            console.log('Question data: ',questionData)
+            console.log("hiting ask Question api")
             const res = await axios.post('/api/questions', questionData,{
                 headers:{
                     Authorization:`Bearer ${token}`
                 }
             })
-            // console.log("response form askqouestion api: ",res)
+            console.log("response form askqouestion api: ",res)
             return res.data;
         }
         catch (error) {

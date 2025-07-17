@@ -3,9 +3,9 @@ import { verifyAuth } from "@/middleware/auth";
 
 
 export async function POST(req) {
-    // console.log("going for verification")
+    console.log("going for verification")
     const user = await verifyAuth(req);
-    // console.log("verification done user: ",user)
+    console.log("verification done user: ",user)
     if (!user) return new Response(JSON.stringify({ message: "User unauthorized" }), { status: 400 });
     try {
         const body = await req.json()
