@@ -60,3 +60,14 @@ body {
   color: #706b76;
   margin-top: 1rem;
 }
+
+/* Your global CSS or module CSS */
+.answer-box .ProseMirror:focus {
+  outline: none;
+}
+
+.answer-box .tiptap.ProseMirror{
+  min-height: 16rem;
+  max-height: 30rem;
+  overflow: auto;
+}
