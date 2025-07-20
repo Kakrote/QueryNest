@@ -48,7 +48,7 @@ const QuestionPage = () => {
   } = _count;
 
   return (
-    <main className='mt-16 px-4 w-full mx-auto'>
+    <main className='mt-16 md:px-4 w-full mx-auto'>
       {/* Header Action */}
       <div className='flex justify-end items-center py-4 border-b'>
         <button className='px-4 py-2 bg-[#4255FF] text-white text-sm rounded hover:bg-[#3a4ce3] active:scale-95 transition'>
@@ -121,7 +121,7 @@ const QuestionPage = () => {
 
         {/* Answer input area (placeholder) */}
         <div className=''>
-          <form onSubmit={handleSubmit(onSubmit)} className="bg-gray-50 p-4 border rounded">
+          <form onSubmit={handleSubmit(onSubmit)} className="bg-gray-50 md:p-4 border rounded">
             <Controller
               name="content"
               control={control}
@@ -133,7 +133,7 @@ const QuestionPage = () => {
 
             <button
               type="submit"
-              className="mt-4 px-4 py-2 bg-[#0946FF] text-white rounded hover:bg-[#083be0] active:scale-95 transition"
+              className="mt-4 ms-auto block px-4 py-2 bg-[#0946FF] text-white rounded hover:bg-[#083be0] active:scale-95 transition"
             >
               Submit Answer
             </button>
