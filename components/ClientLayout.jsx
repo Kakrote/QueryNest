@@ -31,7 +31,7 @@ const ClientLayout = ({ children }) => {
   return (
     <div className="relative min-h-screen flex">
   
-      <div className="hidden lg:block lg:fixed lg:top-0 lg:left-0 lg:h-[calc(100vh-3.5rem)] lg:z-30">
+      <div className="lg:block lg:fixed lg:top-0 lg:left-0 lg:h-[calc(100vh-3.5rem)] lg:z-30">
         <MenuBar isOpen={true} closeSideBar={() => {}} />
       </div>
 
