@@ -121,3 +121,48 @@ export const getAnswersByQuestionId = async (questionId) => {
     return { status: 500, message: "Server error!" };
   }
 };
+
+// get answers by user ID
+export const getAnswersByUserId = async (userId) => {
+  if (!userId) return { status: 400, message: "User ID is required" };
+
+  try {
+    const answers = await prisma.answer.findMany({
+      where: { authorId: userId },
+      include: {
+        question: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            tags: true,
+          },
+        },
+        author: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+        comments: {
+          select: {
+            content: true,
+            createdAt: true,
+            author: {
+              select: { name: true },
+            },
+          },
+        },
+        votes: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return { status: 200, answers };
+  } catch (error) {
+    console.error(error);
+    return { status: 500, message: "Server error!" };
+  }
+};
