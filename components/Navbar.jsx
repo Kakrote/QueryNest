@@ -16,9 +16,9 @@ export default function Navbar({ toggleMenu }) {
       </button>
 
       {/* logo */}
-      <div className="flex justify-center md:justify-start">
+      <Link href="/" className="flex justify-center md:justify-start">
         <h1 className="text-lg text-center md:text-2xl text-blue-800 font-semibold tracking-wide">QueryNest</h1>
-      </div>
+      </Link>
 
       {/* Links for desktop */}
       <div className="flex gap-5">
