@@ -1,4 +1,4 @@
-# QueryNest
+# [QueryNest](https://query-nest-nine.vercel.app/questions)
 
 QueryNest is a full-stack Q&A web application built with Next.js, Prisma, and Tailwind CSS. It allows users to ask questions, provide answers, comment, vote, and manage authentication. The project is structured for scalability and maintainability, following modern best practices.
 
