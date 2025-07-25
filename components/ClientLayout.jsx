@@ -35,6 +35,8 @@ const ClientLayout = ({ children }) => {
         <MenuBar isOpen={true} closeSideBar={() => {}} />
       </div>
 
+
+
       {/* Sidebar for small screens */}
       {isOpen && (
         <div
