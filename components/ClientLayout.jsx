@@ -31,15 +31,15 @@ const ClientLayout = ({ children }) => {
   return (
     <div className="relative min-h-screen flex">
   
-      <div className="hidden lg:block lg:fixed lg:top-0 lg:left-0 lg:h-[calc(100vh-3.5rem)] lg:z-30">
+      {/* <div className="hidden lg:block lg:fixed lg:top-0 lg:left-0 lg:h-[calc(100vh-3.5rem)] lg:z-30">
         <MenuBar isOpen={true} closeSideBar={() => {}} />
-      </div>
+      </div> */}
 
       {/* Sidebar for small screens */}
       {isOpen && (
         <div
           ref={sidebarRef}
-          className="fixed left-0 z-50 block lg:hidden"
+          className="fixed left-0 z-50 block"
         >
           <MenuBar isOpen={isOpen} closeSideBar={() => setIsOpen(false)} />
         </div>
