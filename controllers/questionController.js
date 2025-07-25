@@ -96,6 +96,7 @@ export const getUserQuestions = async (userId) => {
         authorId: userId,
       },
       include: {
+        author: { select: { id: true, name: true } },
         tags: true,
         _count: {
           select: {
