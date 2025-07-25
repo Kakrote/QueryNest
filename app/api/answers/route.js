@@ -1,6 +1,6 @@
 import { answerQuestion ,updateAnswer,deleteAnswer,getAnswersByQuestionId } from "@/controllers/answerController";
 import { verifyAuth } from "@/middleware/auth";
-import { use } from "react";
+// import { use } from "react";
 
 export async function POST(req) {
     const user = await verifyAuth(req)
