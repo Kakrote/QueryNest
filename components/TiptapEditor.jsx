@@ -3,7 +3,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { useEffect } from "react";
 import { Bold, Italic, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, BlocksIcon, Code2, Minus, Undo2, Redo2, Pilcrow } from "lucide-react";
 
-const TiptapEditor = ({ value, onChange }) => {
+const TiptapEditor = ({ value, onChange, placeholder = "Start typing..." }) => {
   const editor = useEditor({
     extensions: [StarterKit],
     content: value || "",
@@ -11,7 +11,18 @@ const TiptapEditor = ({ value, onChange }) => {
       onChange(editor.getHTML());
     },
     immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        'data-placeholder': placeholder,
+      },
+    },
   });
+
+  useEffect(() => {
+    if (editor && value !== editor.getHTML()) {
+      editor.commands.setContent(value || "");
+    }
+  }, [editor, value]);
 
   useEffect(() => {
     return () => {
@@ -34,9 +45,9 @@ const TiptapEditor = ({ value, onChange }) => {
   );
 
   return (
-    <div className="w-full border rounded-md shadow-sm overflow-hidden bg-white answer-box">
+    <div className="w-full border rounded-md shadow-sm overflow-hidden bg-white">
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-2 p-3 border-b bg-gray-100">
+      <div className="flex flex-wrap gap-2 p-3 border-b bg-gray-50">
         {toolbarButton("Bold", Bold, () => editor.chain().focus().toggleBold().run(), editor.isActive("bold"))}
         {toolbarButton("Italic", Italic, () => editor.chain().focus().toggleItalic().run(), editor.isActive("italic"))}
         {toolbarButton("Strikethrough", Strikethrough, () => editor.chain().focus().toggleStrike().run(), editor.isActive("strike"))}
@@ -55,9 +66,12 @@ const TiptapEditor = ({ value, onChange }) => {
       </div>
 
       {/* Editor Content */}
-      {/* <div className="min-h-[160px] bg-[#dcdce4ee] p-1  focus:outline-none bg-white prose prose-sm max-w-none"> */}
-      <EditorContent editor={editor} className="p-3" />
-      {/* </div> */}
+      <div className="min-h-[200px] max-h-[400px] overflow-auto bg-white">
+        <EditorContent 
+          editor={editor} 
+          className="p-4 prose prose-sm max-w-none focus:outline-none tiptap" 
+        />
+      </div>
     </div>
   );
 };
