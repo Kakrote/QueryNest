@@ -1,4 +1,4 @@
-import { vote,getVoteCount} from "@/controllers/voteController";
+import { vote, getVoteCount, getUserVote } from "@/controllers/voteController";
 import { verifyAuth } from "@/middleware/auth";
 
 export async function POST(req) {
@@ -30,7 +30,17 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const questionId = searchParams.get("questionId");
   const answerId = searchParams.get("answerId");
+  const userId = searchParams.get("userId");
 
+  // If userId is provided, get user's vote
+  if (userId) {
+    const result = await getUserVote({ userId, questionId, answerId });
+    return new Response(JSON.stringify(result), {
+      status: result.status,
+    });
+  }
+
+  // Otherwise, get vote count
   const result = await getVoteCount({ questionId, answerId });
 
   return new Response(JSON.stringify(result), {

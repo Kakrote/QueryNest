@@ -1,9 +1,11 @@
 import React from 'react';
+import { ThumbsUp } from 'lucide-react';
 
 const QuestionCard = ({ question, onClick }) => {
   if (!question) return null;
 
   const {
+    id,
     title,
     content,
     tags = [],
@@ -19,13 +21,22 @@ const QuestionCard = ({ question, onClick }) => {
 
   return (
     <div
-      className="border-b p-2 relative cursor-pointer hover:bg-gray-50"
+      className="border-b p-2 relative cursor-pointer hover:bg-gray-50 transition-colors"
       onClick={onClick}
     >
       {/* Voting + Answer count */}
-      <div className='space-x-5 text-[10px] p-2'>
-        <span>{vote} Votes</span>
-        <span>{answers} Answers</span>
+      <div className='flex items-center justify-between p-2'>
+        <div className='flex space-x-5 text-[10px] items-center'>
+          <div className={`flex items-center gap-1 ${vote > 0 ? 'text-green-600' : vote < 0 ? 'text-red-500' : 'text-gray-500'}`}>
+            <ThumbsUp size={12} />
+            <span>{vote} Vote{vote !== 1 ? 's' : ''}</span>
+          </div>
+          <span className='text-blue-600'>{answers} Answer{answers !== 1 ? 's' : ''}</span>
+        </div>
+        
+        <div className="text-xs text-gray-500">
+          {new Date(createdAt).toLocaleDateString()}
+        </div>
       </div>
 
       {/* Title + Description */}
