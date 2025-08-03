@@ -27,12 +27,6 @@ const askQuestions = () => {
     const handleFixGrammar = async () => {
         setFixing(true);
         const values = getValues();
-        
-        // Extract plain text from HTML content for correction
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = values.content || '';
-        const plainTextContent = tempDiv.textContent || tempDiv.innerText || '';
-        
         const [fixedTitle, fixedContent, fixedTags] = await Promise.all([
             correctText(values.title),
             correctText(plainTextContent),
