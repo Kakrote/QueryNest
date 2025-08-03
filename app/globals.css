@@ -71,3 +71,25 @@ body {
   max-height: 30rem;
   overflow: auto;
 }
+
+/* Tiptap Placeholder Effect */
+.ProseMirror[data-placeholder]:empty:before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+  height: 0;
+  float: left;
+}
+
+/* Improved Tiptap styling */
+.ProseMirror {
+  outline: none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+  height: 0;
+  float: left;
+}
