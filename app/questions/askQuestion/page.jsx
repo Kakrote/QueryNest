@@ -2,10 +2,11 @@
 import React from 'react'
 import { useState } from 'react';
 import { correctText } from '@/utils/correctText';
-import { set, useForm } from 'react-hook-form';
+import { set, useForm, Controller } from 'react-hook-form';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { askQuestion } from '@/redux/slices/questionSlice';
 import { useRouter } from 'next/navigation';
+import TiptapEditor from '@/components/TiptapEditor';
 import axios from 'axios';
 
 
@@ -20,15 +21,21 @@ const askQuestions = () => {
     const { loading, success, error } = useAppSelector((s) => s.question);
     const dispatch = useAppDispatch();
     const router = useRouter();
-    const { register, handleSubmit, reset, formState: { errors }, getValues, setValue } = useForm();
+    const { register, handleSubmit, reset, formState: { errors }, getValues, setValue, control } = useForm();
 
 
     const handleFixGrammar = async () => {
         setFixing(true);
         const values = getValues();
+        
+        // Extract plain text from HTML content for grammar correction
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = values.content || '';
+        const plainTextContent = tempDiv.textContent || tempDiv.innerText || '';
+        
         const [fixedTitle, fixedContent, fixedTags] = await Promise.all([
             correctText(values.title),
-            correctText(values.content),
+            correctText(plainTextContent),
             correctText(values.tags)
         ]);
         setFixing(false);
@@ -38,7 +45,6 @@ const askQuestions = () => {
             tags: fixedTags
         });
         setShowFixOption(true);
-
     }
 
     const onSubmit = async (data) => {
@@ -72,80 +78,104 @@ const askQuestions = () => {
 
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-6 max-w-4xl mx-auto">
                 {/* Title */}
                 <div>
-                    <label className="block font-medium mb-1">Title</label>
+                    <label className="block font-medium mb-2 text-gray-700">Question Title</label>
                     <input
                         type="text"
-                        {...register('title', { required: true })}
-                        className="w-full p-2 border rounded"
-                        placeholder="Enter your question title"
+                        {...register('title', { required: "Title is required" })}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        placeholder="Enter a clear, concise question title"
                     />
-                    {errors.title && <span className="text-red-500">Title is required</span>}
+                    {errors.title && <span className="text-red-500 text-sm mt-1 block">{errors.title.message}</span>}
                 </div>
 
                 {/* Content */}
                 <div>
-                    <label className="block font-medium mb-1">Content</label>
-                    <textarea
-                        {...register('content', { required: true })}
-                        className="w-full p-2 border rounded"
-                        rows={6}
-                        placeholder="Describe your problem in detail"
+                    <label className="block font-medium mb-2 text-gray-700">Question Details</label>
+                    <Controller
+                        name="content"
+                        control={control}
+                        defaultValue=""
+                        rules={{ required: "Content is required" }}
+                        render={({ field }) => (
+                            <TiptapEditor 
+                                value={field.value} 
+                                onChange={field.onChange}
+                                placeholder="Describe your problem in detail. You can use formatting, code blocks, lists, and more..."
+                            />
+                        )}
                     />
-                    {errors.content && <span className="text-red-500">Content is required</span>}
+                    {errors.content && <span className="text-red-500 text-sm mt-1 block">{errors.content.message}</span>}
                 </div>
 
                 {/* Tags */}
                 <div>
-                    <label className="block font-medium mb-1">Tags (comma separated)</label>
+                    <label className="block font-medium mb-2 text-gray-700">Tags</label>
                     <input
                         type="text"
-                        {...register('tags', { required: true })}
-                        className="w-full p-2 border rounded"
-                        placeholder="e.g., javascript, nextjs, api"
+                        {...register('tags', { required: "At least one tag is required" })}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        placeholder="e.g., javascript, nextjs, api, react (comma separated)"
                     />
-                    {errors.tags && <span className="text-red-500">At least one tag is required</span>}
+                    <p className="text-sm text-gray-500 mt-1">Add relevant tags to help others find your question</p>
+                    {errors.tags && <span className="text-red-500 text-sm mt-1 block">{errors.tags.message}</span>}
                 </div>
 
-                {/* Fix Grammar Button */}
-                <button
-                    type="button"
-                    onClick={handleFixGrammar}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
-                    disabled={fixing}
-                >
-                    {fixing ? "Fixing..." : "✨ Fix Grammar & Spelling"}
-                </button>
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-4 pt-4 border-t">
+                    {/* Fix Grammar Button */}
+                    <button
+                        type="button"
+                        onClick={handleFixGrammar}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={fixing}
+                    >
+                        {fixing ? "Fixing..." : "✨ Fix Grammar & Spelling"}
+                    </button>
+
+                    {/* Submit Button */}
+                    <button
+                        type="submit"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+                        disabled={loading}
+                    >
+                        {loading ? 'Posting...' : 'Ask Question'}
+                    </button>
+                </div>
 
                 {/* AI Correction Preview */}
                 {showFixOption && (
-                    <div className="p-3 mt-4 border rounded bg-gray-50">
-                        <p className="font-semibold mb-2">AI-Suggested Corrections:</p>
+                    <div className="p-4 mt-6 border border-blue-200 rounded-lg bg-blue-50">
+                        <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                            ✨ AI-Suggested Corrections
+                        </h3>
 
-                        <div className="mb-2">
-                            <strong>Title:</strong>
-                            <p className="italic text-blue-700">{corrections.title}</p>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="font-medium text-gray-700">Title:</label>
+                                <p className="italic text-blue-800 bg-white p-2 rounded border mt-1">{corrections.title}</p>
+                            </div>
+
+                            <div>
+                                <label className="font-medium text-gray-700">Content:</label>
+                                <p className="italic text-blue-800 bg-white p-3 rounded border mt-1 whitespace-pre-wrap max-h-32 overflow-y-auto">{corrections.content}</p>
+                            </div>
+
+                            <div>
+                                <label className="font-medium text-gray-700">Tags:</label>
+                                <p className="italic text-blue-800 bg-white p-2 rounded border mt-1">{corrections.tags}</p>
+                            </div>
                         </div>
 
-                        <div className="mb-2">
-                            <strong>Content:</strong>
-                            <p className="italic text-blue-700 whitespace-pre-wrap">{corrections.content}</p>
-                        </div>
-
-                        <div className="mb-2">
-                            <strong>Tags:</strong>
-                            <p className="italic text-blue-700">{corrections.tags}</p>
-                        </div>
-
-                        <div className="flex gap-4 mt-2">
+                        <div className="flex gap-3 mt-4">
                             <button
                                 type="button"
-                                className="px-3 py-1 bg-green-600 text-white rounded"
+                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-colors"
                                 onClick={() => {
                                     setValue("title", corrections.title);
-                                    setValue("content", corrections.content);
+                                    setValue("content", `<p>${corrections.content}</p>`); // Wrap in HTML for Tiptap
                                     setValue("tags", corrections.tags);
                                     setShowFixOption(false);
                                 }}
@@ -155,25 +185,16 @@ const askQuestions = () => {
 
                             <button
                                 type="button"
-                                className="px-3 py-1 bg-gray-400 text-white rounded"
+                                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md font-medium transition-colors"
                                 onClick={() => setShowFixOption(false)}
                             >
-                                ❌ Cancel
+                                ❌ Keep original
                             </button>
                         </div>
                     </div>
                 )}
 
-                {/* submiting the question */}
-                <button
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50"
-                    disabled={loading}
-                >
-                    {loading ? 'Posting...' : 'Ask Question'}
-                </button>
-
-                {error && <p className="text-red-500 mt-2">{error}</p>}
+                {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">{error}</div>}
             </form>
 
 
