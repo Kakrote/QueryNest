@@ -14,10 +14,7 @@ const TiptapEditor = ({ value, onChange, placeholder = "Start typing..." }) => {
     editorProps: {
       attributes: {
         'data-placeholder': placeholder,
-<<<<<<< HEAD
-=======
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[200px] p-4',
->>>>>>> test/test
       },
     },
   });
@@ -71,14 +68,7 @@ const TiptapEditor = ({ value, onChange, placeholder = "Start typing..." }) => {
 
       {/* Editor Content */}
       <div className="min-h-[200px] max-h-[400px] overflow-auto bg-white">
-<<<<<<< HEAD
-        <EditorContent 
-          editor={editor} 
-          className="p-4 prose prose-sm max-w-none focus:outline-none tiptap" 
-        />
-=======
         <EditorContent editor={editor} />
->>>>>>> test/test
       </div>
     </div>
   );
