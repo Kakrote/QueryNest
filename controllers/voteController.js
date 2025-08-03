@@ -79,3 +79,30 @@ export const getVoteCount = async ({ questionId = null, answerId = null }) => {
         return { status: 500, message: "Server error." };
     }
 };
+
+// Get user's vote for a specific question or answer
+export const getUserVote = async ({ userId, questionId = null, answerId = null }) => {
+    if (!userId || (!questionId && !answerId)) {
+        return { status: 400, message: "userId and either questionId or answerId is required." };
+    }
+
+    try {
+        const userVote = await prisma.vote.findFirst({
+            where: {
+                userId: userId,
+                questionId: questionId || undefined,
+                answerId: answerId || undefined
+            },
+        });
+
+        return {
+            status: 200,
+            data: {
+                userVote: userVote ? userVote.type : null,
+            },
+        };
+    } catch (error) {
+        console.error("Get user vote error:", error);
+        return { status: 500, message: "Server error." };
+    }
+};
