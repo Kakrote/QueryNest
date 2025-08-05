@@ -1,13 +1,15 @@
 "use client";
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { Share2Icon } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { Controller, useForm, reset } from 'react-hook-form';
 import TiptapEditor from '@/components/TiptapEditor';
 import VotingButtons from '@/components/VotingButtons';
 import Answer from '@/components/Answer';
 import { fetchAnswersByQuestionId, submitAnswer, clearSubmitSuccess } from '@/redux/slices/answerSlice';
+import { deleteQuestion } from '@/redux/slices/questionSlice';
 import axios from 'axios';
 // import { headers } from 'next/headers';
 
@@ -16,6 +18,7 @@ const QuestionPage = () => {
   const { id, slug } = useParams(); // question id and slug
   const { control, handleSubmit, reset } = useForm();
   const dispatch = useAppDispatch();
+  const router = useRouter();
   
   // Redux state
   const { user } = useAppSelector((state) => state.auth);
@@ -53,6 +56,27 @@ const QuestionPage = () => {
       console.error('Submit answer error:', error);
     }
   };
+
+  const handleDeleteQuestion = async () => {
+    if (!user || user.id !== question?.author?.id) {
+      alert('You can only delete your own questions');
+      return;
+    }
+
+    const confirmDelete = confirm(
+      'Are you sure you want to delete this question? This action cannot be undone and will delete all answers and comments.'
+    );
+
+    if (confirmDelete) {
+      try {
+        await dispatch(deleteQuestion(id)).unwrap();
+        alert('Question deleted successfully');
+        router.push('/questions'); // Redirect to questions list
+      } catch (error) {
+        alert(error || 'Failed to delete question');
+      }
+    }
+  };
   const question = useAppSelector((state) =>
     state.question.questions.find((q) => String(q.id) === String(id))
   );
@@ -76,7 +100,20 @@ const QuestionPage = () => {
   return (
     <main className='mt-16 md:px-4 w-full mx-auto'>
       {/* Header Action */}
-      <div className='flex justify-end items-center py-4 border-b'>
+      <div className='flex justify-between items-center py-4 border-b'>
+        <div>
+          {/* Show delete button only to question author */}
+          {user && user.id === author?.id && (
+            <button 
+              onClick={handleDeleteQuestion}
+              className='flex items-center gap-2 px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 active:scale-95 transition mr-3'
+              title="Delete this question"
+            >
+              <Trash2 size={16} />
+              Delete Question
+            </button>
+          )}
+        </div>
         <button className='px-4 py-2 bg-[#4255FF] text-white text-sm rounded hover:bg-[#3a4ce3] active:scale-95 transition'>
           View Answers
         </button>

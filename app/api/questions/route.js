@@ -1,4 +1,4 @@
-import { createQuestion,getAllQuestions } from "@/controllers/questionController";
+import { createQuestion, getAllQuestions, deleteQuestion } from "@/controllers/questionController";
 import { verifyAuth } from "@/middleware/auth";
 
 
@@ -41,5 +41,27 @@ export async function GET(req) {
   return new Response(JSON.stringify(result), {
     status: result.status,
   });
+}
+
+export async function DELETE(req) {
+    const user = await verifyAuth(req);
+    if (!user) return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
+    
+    try {
+        const { questionId } = await req.json();
+        if (!questionId) {
+            return new Response(JSON.stringify({ message: "Question ID is required." }), { status: 400 });
+        }
+        
+        const result = await deleteQuestion({ 
+            questionId, 
+            authorId: user.userId 
+        });
+        
+        return new Response(JSON.stringify(result), { status: result.status });
+    } catch (error) {
+        console.error("Error deleting question:", error);
+        return new Response(JSON.stringify({ message: "Server error." }), { status: 500 });
+    }
 }
 

@@ -135,6 +135,7 @@ export default function Home() {
                         key={question.id}
                         question={question}
                         onClick={() => handleQuestionClick(question.id, question.slug)}
+                        showDelete={true}
                       />
                     ))}
                   </div>
