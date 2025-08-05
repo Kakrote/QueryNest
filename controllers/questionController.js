@@ -214,3 +214,33 @@ export const searchQuestions = async (query) => {
     return { status: 500, message: "Server error." };
   }
 };
+
+// Delete a question (only by the author)
+export const deleteQuestion = async ({ questionId, authorId }) => {
+  if (!questionId || !authorId) return { status: 400, message: "Question ID and Author ID are required." };
+
+  try {
+    // Find the question and verify ownership
+    const question = await prisma.question.findUnique({
+      where: { id: questionId },
+      include: {
+        answers: true,
+        comments: true,
+        vote: true,
+      },
+    });
+
+    if (!question) return { status: 404, message: "Question not found." };
+    if (question.authorId !== authorId) return { status: 403, message: "Unauthorized. You can only delete your own questions." };
+
+    // Delete the question (this will cascade delete related answers, comments, votes due to Prisma schema)
+    await prisma.question.delete({
+      where: { id: questionId },
+    });
+
+    return { status: 200, message: "Question deleted successfully." };
+  } catch (error) {
+    console.error("Delete question error:", error);
+    return { status: 500, message: "Server error." };
+  }
+};

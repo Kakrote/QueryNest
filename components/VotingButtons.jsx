@@ -44,7 +44,12 @@ const VotingButtons = ({
 
   const handleVote = async (voteType) => {
     if (!user) {
-      alert('Please login to vote');
+      const userConfirmed = confirm(
+        'You need to login to vote. Would you like to go to the login page?'
+      );
+      if (userConfirmed) {
+        window.location.href = '/auth/login';
+      }
       return;
     }
 

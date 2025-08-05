@@ -41,6 +41,26 @@ export const fetchQuestions = createAsyncThunk(
     }
 )
 
+// Delete question
+export const deleteQuestion = createAsyncThunk(
+    'question/deleteQuestion',
+    async (questionId, { rejectWithValue, getState }) => {
+        try {
+            const token = getState().auth.token;
+            const res = await axios.delete('/api/questions', {
+                data: { questionId },
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            return { questionId, message: res.data.message };
+        }
+        catch (error) {
+            return rejectWithValue(error.response?.data?.message || "Failed to delete question");
+        }
+    }
+)
+
 
 const questionSlice = createSlice({
     name: "question",
@@ -88,6 +108,20 @@ const questionSlice = createSlice({
                 state.questions.unshift(action.payload); // optional: optimistic update
             })
             .addCase(askQuestion.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(deleteQuestion.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(deleteQuestion.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = true;
+                // Remove the deleted question from the state
+                state.questions = state.questions.filter(q => q.id !== action.payload.questionId);
+            })
+            .addCase(deleteQuestion.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });;

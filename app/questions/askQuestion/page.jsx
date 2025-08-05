@@ -19,6 +19,7 @@ const askQuestions = () => {
     const [fixing, setFixing] = useState(false);
 
     const { loading, success, error } = useAppSelector((s) => s.question);
+    const { token } = useAppSelector((s) => s.auth);
     const dispatch = useAppDispatch();
     const router = useRouter();
     const { register, handleSubmit, reset, formState: { errors }, getValues, setValue, control } = useForm();
@@ -26,19 +27,69 @@ const askQuestions = () => {
 
     const handleFixGrammar = async () => {
         setFixing(true);
-        const values = getValues();
-        const [fixedTitle, fixedContent, fixedTags] = await Promise.all([
-            correctText(values.title),
-            correctText(plainTextContent),
-            correctText(values.tags)
-        ]);
-        setFixing(false);
-        setCorrections({
-            title: fixedTitle,
-            content: fixedContent,
-            tags: fixedTags
-        });
-        setShowFixOption(true);
+        try {
+            const values = getValues();
+            console.log("Form values:", values);
+            
+            // Check if user is authenticated
+            if (!token) {
+                alert("Please login to use grammar correction feature.");
+                setFixing(false);
+                return;
+            }
+            
+            // Extract plain text from rich text content for grammar checking
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = values.content || '';
+            const plainTextContent = tempDiv.textContent || tempDiv.innerText || '';
+            
+            console.log("Plain text content:", plainTextContent);
+            
+            // Check if we have text to correct
+            if (!values.title && !plainTextContent && !values.tags) {
+                alert("Please fill in some content before using grammar correction.");
+                setFixing(false);
+                return;
+            }
+            
+            // Create correction functions that use the token from Redux
+            const correctTextWithToken = async (text, type = 'text') => {
+                if (!text || text.trim().length < 3) return text;
+                
+                try {
+                    const res = await axios.post("/api/spellCheck", { text, type }, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+                    return res.data.corrected || text;
+                } catch (error) {
+                    console.error("Correction API failed:", error);
+                    return text;
+                }
+            };
+            
+            const [fixedTitle, fixedContent, fixedTags] = await Promise.all([
+                correctTextWithToken(values.title || '', 'text'),
+                correctTextWithToken(plainTextContent, 'text'),
+                correctTextWithToken(values.tags || '', 'tags')
+            ]);
+            
+            console.log("Corrections received:", { fixedTitle, fixedContent, fixedTags });
+            
+            setCorrections({
+                title: fixedTitle,
+                content: fixedContent,
+                tags: fixedTags
+            });
+            setShowFixOption(true);
+        } catch (error) {
+            console.error("Grammar fix error:", error);
+            alert("Failed to fix grammar. Please try again.");
+        } finally {
+            setFixing(false);
+        }
     }
 
     const onSubmit = async (data) => {

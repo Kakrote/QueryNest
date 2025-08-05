@@ -24,8 +24,8 @@ const QuestionsList = () => {
     }, [filter]);
 
     const handleQuestionClick = (id,slug) => {
-        if (!user) router.push("/auth/login");
-        else router.push(`/questions/${id}/${slug}`); // Navigate to question details page
+        // if (!user) router.push("/auth/login");
+        router.push(`/questions/${id}/${slug}`); // Navigate to question details page
     };
 
     const handleAskQuestion = () => {

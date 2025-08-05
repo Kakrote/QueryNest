@@ -1,7 +1,12 @@
 import React from 'react';
-import { ThumbsUp } from 'lucide-react';
+import { ThumbsUp, Trash2 } from 'lucide-react';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { deleteQuestion } from '@/redux/slices/questionSlice';
 
-const QuestionCard = ({ question, onClick }) => {
+const QuestionCard = ({ question, onClick, showDelete = false }) => {
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+  
   if (!question) return null;
 
   const {
@@ -18,6 +23,23 @@ const QuestionCard = ({ question, onClick }) => {
     vote = 0,
     answers = 0,
   } = _count;
+
+  const handleDeleteQuestion = async (e) => {
+    e.stopPropagation(); // Prevent card click
+    
+    const confirmDelete = confirm(
+      `Are you sure you want to delete "${title}"? This action cannot be undone.`
+    );
+
+    if (confirmDelete) {
+      try {
+        await dispatch(deleteQuestion(id)).unwrap();
+        alert('Question deleted successfully');
+      } catch (error) {
+        alert(error || 'Failed to delete question');
+      }
+    }
+  };
 
   return (
     <div
@@ -59,10 +81,24 @@ const QuestionCard = ({ question, onClick }) => {
       </div>
 
       {/* Footer */}
-      <div className='flex justify-end px-3 space-x-3 text-sm'>
-        <span className='text-[#0C2AF2]'>{author?.name || "Anonymous"}</span>
-        <span className='text-[#343D4ED6]/60'>{new Date(createdAt).toLocaleTimeString()}</span>
-        <span className='text-[#343D4ED6]/60'>{new Date(createdAt).toLocaleDateString()}</span>
+      <div className='flex justify-between items-center px-3 space-x-3 text-sm'>
+        <div className='flex space-x-3'>
+          <span className='text-[#0C2AF2]'>{author?.name || "Anonymous"}</span>
+          <span className='text-[#343D4ED6]/60'>{new Date(createdAt).toLocaleTimeString()}</span>
+          <span className='text-[#343D4ED6]/60'>{new Date(createdAt).toLocaleDateString()}</span>
+        </div>
+        
+        {/* Delete button for author's own questions */}
+        {showDelete && user && user.id === author?.id && (
+          <button
+            onClick={handleDeleteQuestion}
+            className='flex items-center gap-1 px-2 py-1 text-red-600 hover:bg-red-50 rounded transition-colors text-xs'
+            title="Delete question"
+          >
+            <Trash2 size={14} />
+            Delete
+          </button>
+        )}
       </div>
     </div>
   );
