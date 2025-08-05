@@ -36,6 +36,18 @@ export default function Home() {
     router.push('/questions/askQuestion');
   };
 
+  const refreshUserAnswers = () => {
+    if (user?.id) {
+      dispatch(fetchUserAnswers(user.id));
+    }
+  };
+
+  const refreshUserQuestions = () => {
+    if (user?.id) {
+      dispatch(fetchUserQuestions(user.id));
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -168,6 +180,7 @@ export default function Home() {
                       <AnswerCard
                         key={answer.id}
                         answer={answer}
+                        onRefresh={refreshUserAnswers}
                       />
                     ))}
                   </div>

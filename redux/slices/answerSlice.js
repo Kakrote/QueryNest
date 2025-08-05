@@ -49,31 +49,108 @@ export const submitAnswer = createAsyncThunk(
   }
 );
 
+// Async thunk for updating an answer
+export const updateAnswer = createAsyncThunk(
+  'answer/updateAnswer',
+  async ({ answerId, newContent }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const response = await axios.put(
+        '/api/answers',
+        { answerId, newContent },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      return { answerId, newContent, ...response.data.update };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || 'Failed to update answer'
+      );
+    }
+  }
+);
+
+// Async thunk for deleting an answer
+export const deleteAnswer = createAsyncThunk(
+  'answer/deleteAnswer',
+  async (answerId, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const response = await axios.delete('/api/answers', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        data: { answerId },
+      });
+
+      return { answerId, ...response.data };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || 'Failed to delete answer'
+      );
+    }
+  }
+);
+
 const answerSlice = createSlice({
   name: 'answer',
   initialState: {
     answers: {},
     loading: false,
     submitLoading: false,
+    updateLoading: false,
+    deleteLoading: false,
     error: null,
     submitError: null,
+    updateError: null,
+    deleteError: null,
     submitSuccess: false,
+    updateSuccess: false,
+    deleteSuccess: false,
   },
   reducers: {
     clearAnswerError: (state) => {
       state.error = null;
       state.submitError = null;
+      state.updateError = null;
+      state.deleteError = null;
     },
     resetAnswerState: (state) => {
       state.answers = {};
       state.loading = false;
       state.submitLoading = false;
+      state.updateLoading = false;
+      state.deleteLoading = false;
       state.error = null;
       state.submitError = null;
+      state.updateError = null;
+      state.deleteError = null;
       state.submitSuccess = false;
+      state.updateSuccess = false;
+      state.deleteSuccess = false;
     },
     clearSubmitSuccess: (state) => {
       state.submitSuccess = false;
+    },
+    clearUpdateSuccess: (state) => {
+      state.updateSuccess = false;
+    },
+    clearDeleteSuccess: (state) => {
+      state.deleteSuccess = false;
     },
   },
   extraReducers: (builder) => {
@@ -115,9 +192,54 @@ const answerSlice = createSlice({
       .addCase(submitAnswer.rejected, (state, action) => {
         state.submitLoading = false;
         state.submitError = action.payload;
+      })
+
+      // Update answer cases
+      .addCase(updateAnswer.pending, (state) => {
+        state.updateLoading = true;
+        state.updateError = null;
+        state.updateSuccess = false;
+      })
+      .addCase(updateAnswer.fulfilled, (state, action) => {
+        state.updateLoading = false;
+        state.updateSuccess = true;
+        
+        // Update the answer in the state
+        const { answerId, newContent } = action.payload;
+        Object.keys(state.answers).forEach(questionId => {
+          const answerIndex = state.answers[questionId].findIndex(answer => answer.id === answerId);
+          if (answerIndex !== -1) {
+            state.answers[questionId][answerIndex].content = newContent;
+          }
+        });
+      })
+      .addCase(updateAnswer.rejected, (state, action) => {
+        state.updateLoading = false;
+        state.updateError = action.payload;
+      })
+
+      // Delete answer cases
+      .addCase(deleteAnswer.pending, (state) => {
+        state.deleteLoading = true;
+        state.deleteError = null;
+        state.deleteSuccess = false;
+      })
+      .addCase(deleteAnswer.fulfilled, (state, action) => {
+        state.deleteLoading = false;
+        state.deleteSuccess = true;
+        
+        // Remove the answer from the state
+        const { answerId } = action.payload;
+        Object.keys(state.answers).forEach(questionId => {
+          state.answers[questionId] = state.answers[questionId].filter(answer => answer.id !== answerId);
+        });
+      })
+      .addCase(deleteAnswer.rejected, (state, action) => {
+        state.deleteLoading = false;
+        state.deleteError = action.payload;
       });
   },
 });
 
-export const { clearAnswerError, resetAnswerState, clearSubmitSuccess } = answerSlice.actions;
+export const { clearAnswerError, resetAnswerState, clearSubmitSuccess, clearUpdateSuccess, clearDeleteSuccess } = answerSlice.actions;
 export default answerSlice.reducer;
