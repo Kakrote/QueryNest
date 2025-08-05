@@ -42,6 +42,17 @@ const userContentSlice = createSlice({
             state.loading = false;
             state.error = null;
         },
+        updateUserAnswer: (state, action) => {
+            const { answerId, newContent } = action.payload;
+            const answerIndex = state.userAnswers.findIndex(answer => answer.id === answerId);
+            if (answerIndex !== -1) {
+                state.userAnswers[answerIndex].content = newContent;
+            }
+        },
+        removeUserAnswer: (state, action) => {
+            const answerId = action.payload;
+            state.userAnswers = state.userAnswers.filter(answer => answer.id !== answerId);
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -74,5 +85,5 @@ const userContentSlice = createSlice({
     }
 });
 
-export const { resetUserContent } = userContentSlice.actions;
+export const { resetUserContent, updateUserAnswer, removeUserAnswer } = userContentSlice.actions;
 export default userContentSlice.reducer;
