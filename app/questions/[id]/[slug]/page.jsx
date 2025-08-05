@@ -105,7 +105,21 @@ const QuestionPage = () => {
 
         {/* Share Button */}
         <div className='flex flex-col items-center gap-4'>
-          <button className='hover:scale-110 transition border rounded-lg p-2'>
+          <button 
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({
+                  title: title,
+                  url: window.location.href
+                });
+              } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link copied to clipboard!');
+              }
+            }}
+            className='hover:scale-110 transition border rounded-lg p-2'
+            title="Share this question"
+          >
             <Share2Icon size={26} color='#0E93FF' />
           </button>
         </div>
@@ -142,7 +156,21 @@ const QuestionPage = () => {
           <h2 className='text-xl font-medium text-gray-800'>
             {questionAnswers.length > 0 ? `${questionAnswers.length} Answer${questionAnswers.length !== 1 ? 's' : ''}` : 'Share with someone who might know the answer'}
           </h2>
-          <button className='flex items-center gap-2 bg-[#0946FF] text-white px-4 py-1.5 rounded hover:bg-[#083be0] active:scale-95 transition'>
+          <button 
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({
+                  title: title,
+                  url: window.location.href
+                });
+              } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link copied to clipboard!');
+              }
+            }}
+            className='flex items-center gap-2 bg-[#0946FF] text-white px-4 py-1.5 rounded hover:bg-[#083be0] active:scale-95 transition'
+            title="Share this question"
+          >
             <span>Share</span>
             <Share2Icon size={20} />
           </button>
@@ -177,37 +205,60 @@ const QuestionPage = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="bg-gray-50 md:p-4 border rounded">
-            <Controller
-              name="content"
-              control={control}
-              defaultValue=""
-              rules={{ required: "Answer content is required" }}
-              render={({ field }) => (
-                <TiptapEditor 
-                  value={field.value} 
-                  onChange={field.onChange}
-                  placeholder="Write your answer here. Be helpful and provide details..."
-                />
-              )}
-            />
-
-            <div className="flex justify-between items-center mt-4">
-              {!user && (
-                <p className="text-sm text-gray-600">
-                  Please <span className="text-blue-600">login</span> to submit an answer
-                </p>
-              )}
-              
-              <button
-                type="submit"
-                disabled={submitLoading || !user}
-                className="ms-auto block px-6 py-2 bg-[#0946FF] text-white rounded hover:bg-[#083be0] active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {submitLoading ? 'Submitting...' : 'Submit Answer'}
-              </button>
+          {/* Show login prompt for non-authenticated users */}
+          {!user ? (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+              <div className="mb-4">
+                <svg className="mx-auto h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h4 className="text-lg font-semibold text-blue-900 mb-2">Login Required</h4>
+              <p className="text-blue-700 mb-4">
+                To answer this question, vote, or interact with the community, please log in to your account.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => window.location.href = '/auth/login'}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => window.location.href = '/auth/signup'}
+                  className="px-6 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+                >
+                  Sign Up
+                </button>
+              </div>
             </div>
-          </form>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)} className="bg-gray-50 md:p-4 border rounded">
+              <Controller
+                name="content"
+                control={control}
+                defaultValue=""
+                rules={{ required: "Answer content is required" }}
+                render={({ field }) => (
+                  <TiptapEditor 
+                    value={field.value} 
+                    onChange={field.onChange}
+                    placeholder="Write your answer here. Be helpful and provide details..."
+                  />
+                )}
+              />
+
+              <div className="flex justify-end items-center mt-4">
+                <button
+                  type="submit"
+                  disabled={submitLoading}
+                  className="px-6 py-2 bg-[#0946FF] text-white rounded hover:bg-[#083be0] active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submitLoading ? 'Submitting...' : 'Submit Answer'}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </section>
 
