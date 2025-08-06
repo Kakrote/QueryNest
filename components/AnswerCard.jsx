@@ -109,7 +109,7 @@ const AnswerCard = ({ answer, onClick, onRefresh }) => {
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 mb-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+    <div className="border border-gray-200 rounded-lg p-3 sm:p-4 mb-4 bg-white shadow-sm hover:shadow-md transition-shadow">
       {/* Error Messages */}
       {updateError && (
         <div className="mb-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
@@ -122,22 +122,24 @@ const AnswerCard = ({ answer, onClick, onRefresh }) => {
         </div>
       )}
 
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         {/* Voting Section */}
-        <VotingButtons 
-          answerId={id} 
-          initialVoteCount={voteCount}
-          size="small"
-        />
+        <div className="flex sm:block justify-center sm:justify-start">
+          <VotingButtons 
+            answerId={id} 
+            initialVoteCount={voteCount}
+            size="small"
+          />
+        </div>
 
         {/* Answer Content */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           {/* Question Title */}
           <div 
             className={`${!isEditing ? 'cursor-pointer hover:bg-gray-50' : ''} p-2 rounded`}
             onClick={handleClick}
           >
-            <h3 className='text-[#0C2AF2] text-lg font-medium'>{escapeHtml(question?.title || "Unknown Question")}</h3>
+
             
             {/* Answer Content */}
             {isEditing ? (
@@ -158,12 +160,11 @@ const AnswerCard = ({ answer, onClick, onRefresh }) => {
 
             {/* Tags */}
             {question?.tags && !isEditing && (
-              <div className='mt-3 space-x-2'>
+              <div className='mt-3 flex flex-wrap gap-2'>
                 {question.tags.map((tag, index) => (
                   <span
                     key={tag.id || tag.name || index}
-                    className='text-sm bg-[#E4E6FA] text-[#0f0f0f] px-2 py-0.5 rounded'>
-                    {escapeHtml(tag.name)}
+
                   </span>
                 ))}
               </div>
@@ -171,22 +172,23 @@ const AnswerCard = ({ answer, onClick, onRefresh }) => {
           </div>
 
           {/* Footer with Edit/Delete Buttons */}
-          <div className='flex justify-between items-center pt-3 mt-3 border-t border-gray-100'>
+          <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pt-3 mt-3 border-t border-gray-100'>
             {/* Author and Date Info */}
-            <div className='flex items-center space-x-3 text-sm text-gray-500'>
+            <div className='flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500'>
               <span className='text-[#0C2AF2] font-medium'>Answered by you</span>
-              <span>•</span>
-              <span>{new Date(createdAt).toLocaleDateString()}</span>
-              <span>{new Date(createdAt).toLocaleTimeString()}</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="truncate">{new Date(createdAt).toLocaleDateString()}</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="truncate">{new Date(createdAt).toLocaleTimeString()}</span>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2 sm:space-x-2">
               {isEditing ? (
                 <>
                   <button
                     onClick={handleCancelEdit}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
                   >
                     <X size={14} />
                     Cancel
@@ -194,7 +196,7 @@ const AnswerCard = ({ answer, onClick, onRefresh }) => {
                   <button
                     onClick={handleSaveEdit}
                     disabled={updateLoading}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap"
                   >
                     <Save size={14} />
                     {updateLoading ? 'Saving...' : 'Save'}
@@ -204,7 +206,7 @@ const AnswerCard = ({ answer, onClick, onRefresh }) => {
                 <>
                   <button
                     onClick={handleEdit}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors whitespace-nowrap"
                     title="Edit answer"
                   >
                     <Edit size={14} />
@@ -213,7 +215,7 @@ const AnswerCard = ({ answer, onClick, onRefresh }) => {
                   <button
                     onClick={handleDelete}
                     disabled={deleteLoading}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-800 border border-red-300 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-800 border border-red-300 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 whitespace-nowrap"
                     title="Delete answer"
                   >
                     <Trash2 size={14} />
