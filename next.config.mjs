@@ -5,11 +5,6 @@ const nextConfig = {
     serverComponentsExternalPackages: ['prisma', '@prisma/client'],
   },
   
-  // Environment variables configuration
-  env: {
-    NODE_ENV: process.env.NODE_ENV,
-  },
-  
   // Output configuration for deployment
   output: 'standalone',
   
