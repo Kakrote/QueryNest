@@ -3,8 +3,16 @@ import { slugify } from "@/utils/slugify";
 
 export const createQuestion = async ({ title, content, tags, authorId })=>{
     if (!title || !content || !tags) return { status: 400, message: "fileds are required " };
-    console.log("creating Question")
+    // Groq moderation for question content
     try {
+        const { moderateContent } = await import("@/utils/groqModeration");
+        const moderationResult = await moderateContent(content);
+        if (!moderationResult.isAppropriate) {
+            return {
+                status: 403,
+                message: `Question rejected: ${moderationResult.reason || 'Inappropriate content.'}`
+            };
+        }
         const slug = slugify(title);
         const tagRecords = await Promise.all(
             tags.map(async (tagName) => {
