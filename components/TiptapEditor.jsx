@@ -2,13 +2,16 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect } from "react";
 import { Bold, Italic, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, BlocksIcon, Code2, Minus, Undo2, Redo2, Pilcrow } from "lucide-react";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 const TiptapEditor = ({ value, onChange, placeholder = "Start typing..." }) => {
   const editor = useEditor({
     extensions: [StarterKit],
     content: value || "",
     onUpdate({ editor }) {
-      onChange(editor.getHTML());
+      // Sanitize the HTML output before passing it up
+      const sanitizedHTML = sanitizeHtml(editor.getHTML());
+      onChange(sanitizedHTML);
     },
     immediatelyRender: false,
     editorProps: {
@@ -16,12 +19,30 @@ const TiptapEditor = ({ value, onChange, placeholder = "Start typing..." }) => {
         'data-placeholder': placeholder,
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[200px] p-4',
       },
+      // Additional security: prevent pasting of potentially malicious content
+      handlePaste: (view, event, slice) => {
+        // Get the pasted HTML content
+        const html = event.clipboardData?.getData('text/html');
+        if (html) {
+          // Sanitize the pasted content
+          const sanitizedHTML = sanitizeHtml(html);
+          // Create a new document fragment with sanitized content
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(sanitizedHTML, 'text/html');
+          
+          // Update the clipboard data with sanitized content
+          event.clipboardData.setData('text/html', doc.body.innerHTML);
+        }
+        return false; // Let the default handler process the sanitized content
+      }
     },
   });
 
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value || "");
+      // Sanitize content when setting it
+      const sanitizedValue = sanitizeHtml(value || "");
+      editor.commands.setContent(sanitizedValue);
     }
   }, [editor, value]);
 

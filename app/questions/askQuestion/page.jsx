@@ -8,6 +8,7 @@ import { askQuestion } from '@/redux/slices/questionSlice';
 import { useRouter } from 'next/navigation';
 import TiptapEditor from '@/components/TiptapEditor';
 import axios from 'axios';
+import { stripHtml, escapeHtml, sanitizeUserInput } from '@/utils/sanitize';
 
 
 
@@ -39,9 +40,7 @@ const askQuestions = () => {
             }
             
             // Extract plain text from rich text content for grammar checking
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = values.content || '';
-            const plainTextContent = tempDiv.textContent || tempDiv.innerText || '';
+            const plainTextContent = stripHtml(values.content || '');
             
             console.log("Plain text content:", plainTextContent);
             
@@ -200,17 +199,17 @@ const askQuestions = () => {
                         <div className="space-y-3">
                             <div>
                                 <label className="font-medium text-gray-700">Title:</label>
-                                <p className="italic text-blue-800 bg-white p-2 rounded border mt-1">{corrections.title}</p>
+                                <p className="italic text-blue-800 bg-white p-2 rounded border mt-1">{sanitizeUserInput(corrections.title)}</p>
                             </div>
 
                             <div>
                                 <label className="font-medium text-gray-700">Content:</label>
-                                <p className="italic text-blue-800 bg-white p-3 rounded border mt-1 whitespace-pre-wrap max-h-32 overflow-y-auto">{corrections.content}</p>
+                                <p className="italic text-blue-800 bg-white p-3 rounded border mt-1 whitespace-pre-wrap max-h-32 overflow-y-auto">{sanitizeUserInput(corrections.content)}</p>
                             </div>
 
                             <div>
                                 <label className="font-medium text-gray-700">Tags:</label>
-                                <p className="italic text-blue-800 bg-white p-2 rounded border mt-1">{corrections.tags}</p>
+                                <p className="italic text-blue-800 bg-white p-2 rounded border mt-1">{sanitizeUserInput(corrections.tags)}</p>
                             </div>
                         </div>
 
@@ -220,7 +219,7 @@ const askQuestions = () => {
                                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-colors"
                                 onClick={() => {
                                     setValue("title", corrections.title);
-                                    setValue("content", `<p>${corrections.content}</p>`); // Wrap in HTML for Tiptap
+                                    setValue("content", corrections.content); // Don't wrap in HTML tags to prevent XSS
                                     setValue("tags", corrections.tags);
                                     setShowFixOption(false);
                                 }}

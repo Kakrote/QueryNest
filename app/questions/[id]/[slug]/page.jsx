@@ -11,6 +11,7 @@ import Answer from '@/components/Answer';
 import { fetchAnswersByQuestionId, submitAnswer, clearSubmitSuccess } from '@/redux/slices/answerSlice';
 import { deleteQuestion } from '@/redux/slices/questionSlice';
 import axios from 'axios';
+import { sanitizeHtml, stripHtml, escapeHtml, sanitizeUserInput } from '@/utils/sanitize';
 // import { headers } from 'next/headers';
 
 
@@ -122,7 +123,7 @@ const QuestionPage = () => {
       {/* Question Card */}
       <section className='mt-6 border-b pb-4'>
         {/* Title */}
-        <h1 className='text-3xl  text-[#0C2AF2]'>{title}</h1>
+        <h1 className='text-3xl  text-[#0C2AF2]'>{sanitizeUserInput(title)}</h1>
 
         {/* Vote & Answer count */}
         <div className='mt-2 flex space-x-6 text-gray-700 text-[13px]'>
@@ -164,7 +165,7 @@ const QuestionPage = () => {
         {/* Right Content */}
         <div className='flex-1'>
           {/* Content */}
-          <p className='text-lg text-gray-800'>{content}</p>
+          <p className='text-lg text-gray-800'>{sanitizeUserInput(content)}</p>
 
           {/* Tags */}
           <div className='flex flex-wrap gap-2 mt-3'>
@@ -173,14 +174,14 @@ const QuestionPage = () => {
                 key={tag.id || tag.name || index}
                 className='text-sm bg-[#E4E6FA] text-[#0f0f0f] px-3 py-1 rounded-full'
               >
-                {tag.name}
+                {sanitizeUserInput(tag.name)}
               </span>
             ))}
           </div>
 
           {/* Meta info */}
           <div className='flex mt-4 justify-end space-x-3 text-sm text-gray-500'>
-            <span className='text-[#0C2AF2] font-medium'>{author?.name || "Anonymous"}</span>
+            <span className='text-[#0C2AF2] font-medium'>{sanitizeUserInput(author?.name || "Anonymous")}</span>
             <span>{new Date(createdAt).toLocaleTimeString()}</span>
             <span>{new Date(createdAt).toLocaleDateString()}</span>
           </div>

@@ -7,6 +7,7 @@ import { resetQuestionState } from "@/redux/slices/questionSlice";
 import { resetVoteState } from "@/redux/slices/voteSlice";
 import { useRouter } from "next/navigation";
 import { LogOut, User, Settings as SettingsIcon } from "lucide-react";
+import { sanitizeUserInput } from "@/utils/sanitize";
 
 export default function Settings() {
   const dispatch = useAppDispatch();
@@ -57,11 +58,11 @@ export default function Settings() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-md border">{user?.name || "N/A"}</p>
+                <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-md border">{sanitizeUserInput(user?.name || "N/A")}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-md border">{user?.email || "N/A"}</p>
+                <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-md border">{sanitizeUserInput(user?.email || "N/A")}</p>
               </div>
             </div>
           </div>
