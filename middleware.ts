@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { CSP_HEADERS } from './utils/sanitize';
 
-export function middleware(request) {
+export function middleware(request: NextRequest) {
   // Clone the response
   const response = NextResponse.next();
 

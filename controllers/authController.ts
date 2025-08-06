@@ -1,12 +1,30 @@
 "use server"
 import { prisma } from "@/lib/prisma";
-import bcrypt, { hash } from 'bcrypt'
+import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken"
 import { sanitizePlainText } from "@/utils/sanitize";
 
-//Register new User 
+// Types
+interface RegisterParams {
+    name: string;
+    email: string;
+    password: string;
+}
 
-export const registerUser=async({name,email,password})=>{
+interface LoginParams {
+    email: string;
+    password: string;
+}
+
+interface ApiResponse {
+    status: number;
+    message: string;
+    user?: any;
+    token?: string;
+}
+
+//Register new User 
+export const registerUser = async ({ name, email, password }: RegisterParams): Promise<ApiResponse> => {
     if(!name||!email||!password) return {status:400,message:"All the fileds are required"}
     
     // Sanitize user inputs to prevent XSS
@@ -39,8 +57,7 @@ export const registerUser=async({name,email,password})=>{
 }
 
 // Login User
-
-export const loginUser=async({email,password})=>{
+export const loginUser = async ({ email, password }: LoginParams): Promise<ApiResponse> => {
     if(!email||!password) return {status:401,message:"these filed cant be empty"}
     
     // Sanitize email input
@@ -65,10 +82,10 @@ export const loginUser=async({email,password})=>{
             status:402,
             message:"Wrong email or Password"
         }
-        const JWT_SECRET=process.env.JWT_SECRET
-        const token=jwt.sign({userId:user.id,email:user.email},JWT_SECRET,{expiresIn:"10d"})
-        console.log("my token: ",token)
-        return { status: 201, message: 'User registered', token, user };
+        const JWT_SECRET = process.env.JWT_SECRET as string;
+        const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: "10d" });
+        console.log("my token: ", token)
+        return { status: 201, message: 'User logged in', token, user };
 
     }
     catch(error){

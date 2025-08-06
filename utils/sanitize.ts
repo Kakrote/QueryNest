@@ -5,10 +5,20 @@
 
 import DOMPurify from 'isomorphic-dompurify';
 
+type SanitizeType = 'RICH_TEXT' | 'PLAIN_TEXT' | 'SEARCH';
+
+interface SanitizeConfig {
+  ALLOWED_TAGS: string[];
+  ALLOWED_ATTR: { [key: string]: string[] };
+  FORBID_TAGS?: string[];
+  FORBID_ATTR?: string[];
+  KEEP_CONTENT: boolean;
+}
+
 /**
  * Configuration for different content types
  */
-const SANITIZE_CONFIGS = {
+const SANITIZE_CONFIGS: Record<SanitizeType, SanitizeConfig> = {
   // For rich text content (questions, answers) - allows formatting but blocks scripts
   RICH_TEXT: {
     ALLOWED_TAGS: [
@@ -44,11 +54,11 @@ const SANITIZE_CONFIGS = {
 
 /**
  * Sanitizes HTML content to prevent XSS attacks
- * @param {string} content - The content to sanitize
- * @param {string} type - The type of content ('RICH_TEXT', 'PLAIN_TEXT', 'SEARCH')
- * @returns {string} - Sanitized content
+ * @param content - The content to sanitize
+ * @param type - The type of content ('RICH_TEXT', 'PLAIN_TEXT', 'SEARCH')
+ * @returns Sanitized content
  */
-export const sanitizeContent = (content, type = 'RICH_TEXT') => {
+export const sanitizeContent = (content: string, type: SanitizeType = 'RICH_TEXT'): string => {
   if (!content || typeof content !== 'string') {
     return '';
   }
@@ -69,42 +79,42 @@ export const sanitizeContent = (content, type = 'RICH_TEXT') => {
 
 /**
  * Sanitizes rich text content (questions, answers)
- * @param {string} content - Rich text content
- * @returns {string} - Sanitized content
+ * @param content - Rich text content
+ * @returns Sanitized content
  */
-export const sanitizeRichText = (content) => {
+export const sanitizeRichText = (content: string): string => {
   return sanitizeContent(content, 'RICH_TEXT');
 };
 
 /**
  * Sanitizes plain text content (titles, tags, names)
- * @param {string} content - Plain text content
- * @returns {string} - Sanitized content
+ * @param content - Plain text content
+ * @returns Sanitized content
  */
-export const sanitizePlainText = (content) => {
+export const sanitizePlainText = (content: string): string => {
   return sanitizeContent(content, 'PLAIN_TEXT');
 };
 
 /**
  * Sanitizes search queries
- * @param {string} query - Search query
- * @returns {string} - Sanitized query
+ * @param query - Search query
+ * @returns Sanitized query
  */
-export const sanitizeSearchQuery = (query) => {
+export const sanitizeSearchQuery = (query: string): string => {
   return sanitizeContent(query, 'SEARCH');
 };
 
 /**
  * Escapes HTML entities for display in plain text contexts
- * @param {string} text - Text to escape
- * @returns {string} - Escaped text
+ * @param text - Text to escape
+ * @returns Escaped text
  */
-export const escapeHtml = (text) => {
+export const escapeHtml = (text: string): string => {
   if (!text || typeof text !== 'string') {
     return '';
   }
 
-  const map = {
+  const map: { [key: string]: string } = {
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
@@ -118,10 +128,10 @@ export const escapeHtml = (text) => {
 
 /**
  * Validates and sanitizes URL inputs
- * @param {string} url - URL to validate
- * @returns {string|null} - Sanitized URL or null if invalid
+ * @param url - URL to validate
+ * @returns Sanitized URL or null if invalid
  */
-export const sanitizeUrl = (url) => {
+export const sanitizeUrl = (url: string): string | null => {
   if (!url || typeof url !== 'string') {
     return null;
   }
@@ -146,12 +156,12 @@ export const sanitizeUrl = (url) => {
 
 /**
  * Validates and sanitizes form input data
- * @param {Object} data - Form data object
- * @param {Object} schema - Validation schema
- * @returns {Object} - Sanitized data
+ * @param data - Form data object
+ * @param schema - Validation schema
+ * @returns Sanitized data
  */
-export const sanitizeFormData = (data, schema = {}) => {
-  const sanitized = {};
+export const sanitizeFormData = (data: Record<string, any>, schema: Record<string, SanitizeType> = {}): Record<string, any> => {
+  const sanitized: Record<string, any> = {};
 
   for (const [key, value] of Object.entries(data)) {
     if (value === null || value === undefined) {
@@ -178,7 +188,7 @@ export const sanitizeFormData = (data, schema = {}) => {
 /**
  * Content Security Policy headers helper
  */
-export const CSP_HEADERS = {
+export const CSP_HEADERS: { [key: string]: string } = {
   'Content-Security-Policy': [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Note: Consider removing unsafe-inline and unsafe-eval in production

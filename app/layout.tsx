@@ -1,8 +1,8 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Roboto } from "next/font/google";
 import "./globals.css";
-import { Roboto } from "next/font/google";
 import ProviderWrrper from "@/redux/Providers";
 import ClientLayout from "@/components/ClientLayout";
+import { ReactNode } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +26,7 @@ export const metadata = {
   description: "Ask anything, get answered instantly !",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body

@@ -1,42 +1,72 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
-// async trunks for login
 
-export const loginUser = createAsyncThunk(
+// Types
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  loading: boolean;
+  error: string | null;
+}
+
+interface LoginResponse {
+  user: User;
+  token: string;
+}
+
+// async thunks for login
+export const loginUser = createAsyncThunk<
+  LoginResponse,
+  LoginCredentials,
+  { rejectValue: string }
+>(
     'auth/loginUser',
-    async (craditionals, { rejectWithValue }) => {
+    async (credentials: LoginCredentials, { rejectWithValue }) => {
         localStorage.removeItem('token')
         try {
             console.log("In auth slice ")
-            const res = await axios.post('/api/auth/login', craditionals);
+            const res = await axios.post('/api/auth/login', credentials);
             // localStorage.setItem("token", res.data.token); // saving the token in the localstorage
-            console.log("cradintials: ",craditionals)
-            console.log("geeting out from auth slice")
+            console.log("credentials: ", credentials)
+            console.log("getting out from auth slice")
 
             return res.data;
         }
-        catch (error) {
+        catch (error: any) {
             console.log("check error")
-            return rejectWithValue(error.response.data.message);
+            return rejectWithValue(error.response?.data?.message || 'Login failed');
         }
     }
 )
 
+const initialState: AuthState = {
+    user: null,
+    token: null,
+    loading: false,
+    error: null
+};
+
 const authSlice = createSlice({
     name: 'auth',
-    initialState: {
-        user: null,
-        token: null,
-        loading: false,
-        error: null
-    },
+    initialState,
     reducers: {
         logout: (state) => {
             state.token = null;
             state.user = null;
             localStorage.removeItem("token");
         },
-        setCredentials: (state, action) => {
+        setCredentials: (state, action: PayloadAction<LoginResponse>) => {
             state.token = action.payload.token;
             state.user = action.payload.user;
         },
