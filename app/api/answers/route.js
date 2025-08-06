@@ -1,18 +1,28 @@
 import { answerQuestion, updateAnswer, deleteAnswer, getAnswersByQuestionId } from "@/controllers/answerController";
 import { verifyAuth } from "@/middleware/auth";
+import { validateAnswerData, checkRateLimit } from "@/utils/serverValidation";
 
 export async function POST(req) {
     const user = await verifyAuth(req);
     if (!user) return new Response(JSON.stringify({ message: "User unauthorized" }), { status: 401 });
+    
+    // Rate limiting - 10 answers per minute per user
+    if (!checkRateLimit(`answer:${user.userId}`, 10, 60000)) {
+        return new Response(JSON.stringify({ message: "Rate limit exceeded. Please wait before posting another answer." }), { status: 429 });
+    }
+    
     try {
         const body = await req.json();
         const { questionslug, content } = body;
-        if (!questionslug || !content) {
-            return new Response(JSON.stringify({ message: "Missing required fields." }), { status: 400 });
+        
+        // Validate and sanitize input data
+        const validation = validateAnswerData({ content, questionslug });
+        if (!validation.isValid) {
+            return new Response(JSON.stringify({ message: validation.error }), { status: 400 });
         }
+        
         const result = await answerQuestion({
-            questionslug,
-            content,
+            ...validation.data,
             authorId: user.userId
         });
         return new Response(JSON.stringify(result), { status: result.status });

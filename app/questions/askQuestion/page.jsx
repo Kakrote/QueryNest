@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { askQuestion } from '@/redux/slices/questionSlice';
 import { useRouter } from 'next/navigation';
 import TiptapEditor from '@/components/TiptapEditor';
+import { sanitizePlainText } from '@/utils/sanitize';
 import axios from 'axios';
 
 
@@ -39,9 +40,13 @@ const askQuestions = () => {
             }
             
             // Extract plain text from rich text content for grammar checking
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = values.content || '';
-            const plainTextContent = tempDiv.textContent || tempDiv.innerText || '';
+            // Use DOMParser for safer HTML parsing instead of innerHTML
+            let plainTextContent = '';
+            if (values.content) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(values.content, 'text/html');
+                plainTextContent = doc.body.textContent || doc.body.innerText || '';
+            }
             
             console.log("Plain text content:", plainTextContent);
             
@@ -94,12 +99,16 @@ const askQuestions = () => {
 
     const onSubmit = async (data) => {
         console.log("Ask Question button hit")
-        const payload = {
-            ...data,
-            tags: data.tags.split(',').map(tag => tag.trim())
+        
+        // Sanitize form data to prevent XSS
+        const sanitizedData = {
+            title: sanitizePlainText(data.title),
+            content: data.content, // TiptapEditor already handles content sanitization
+            tags: data.tags.split(',').map(tag => sanitizePlainText(tag.trim())).filter(tag => tag.length > 0)
         };
-        console.log("verfying payload: ",payload)
-        await dispatch(askQuestion(payload));
+        
+        console.log("verfying payload: ", sanitizedData)
+        await dispatch(askQuestion(sanitizedData));
         console.log("retruning from api call")
         if (success) {
             reset();

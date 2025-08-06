@@ -41,6 +41,20 @@ export const fetchQuestions = createAsyncThunk(
     }
 )
 
+// Search questions
+export const searchQuestions = createAsyncThunk(
+    'question/searchQuestions',
+    async (query, { rejectWithValue }) => {
+        try {
+            const res = await axios.get(`/api/questions/search?query=${encodeURIComponent(query)}`);
+            return res.data.data;
+        }
+        catch (error) {
+            return rejectWithValue(error.response?.data?.message || "Failed to search questions");
+        }
+    }
+)
+
 // Delete question
 export const deleteQuestion = createAsyncThunk(
     'question/deleteQuestion',
@@ -66,18 +80,27 @@ const questionSlice = createSlice({
     name: "question",
     initialState: {
         questions: [],
+        searchResults: [],
         total: 0,
         page: 1,
         totalPages: 1,
         loading: false,
+        searchLoading: false,
         error: null,
-        success:false,
+        searchError: null,
+        success: false,
+        searchQuery: '',
     },
     reducers: {
         resetQuestionState: (state) => {
             state.loading = false;
             state.success = false;
             state.error = null;
+        },
+        clearSearchResults: (state) => {
+            state.searchResults = [];
+            state.searchError = null;
+            state.searchQuery = '';
         },
     },
     extraReducers: (builder) => {
@@ -124,10 +147,24 @@ const questionSlice = createSlice({
             .addCase(deleteQuestion.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
-            });;
+            })
+            .addCase(searchQuestions.pending, (state) => {
+                state.searchLoading = true;
+                state.searchError = null;
+            })
+            .addCase(searchQuestions.fulfilled, (state, action) => {
+                state.searchLoading = false;
+                state.searchResults = action.payload;
+                state.searchQuery = action.meta.arg;
+            })
+            .addCase(searchQuestions.rejected, (state, action) => {
+                state.searchLoading = false;
+                state.searchError = action.payload;
+                state.searchResults = [];
+            });
     }
 })
 
-export const { resetQuestionState } = questionSlice.actions;
+export const { resetQuestionState, clearSearchResults } = questionSlice.actions;
 
 export default questionSlice.reducer;

@@ -2,6 +2,7 @@ import React from 'react';
 import { ThumbsUp, Trash2 } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { deleteQuestion } from '@/redux/slices/questionSlice';
+import { sanitizePlainText, escapeHtml } from '@/utils/sanitize';
 
 const QuestionCard = ({ question, onClick, showDelete = false }) => {
   const dispatch = useAppDispatch();
@@ -63,9 +64,9 @@ const QuestionCard = ({ question, onClick, showDelete = false }) => {
 
       {/* Title + Description */}
       <div>
-        <h3 className='text-[#0C2AF2] px-2 text-lg'>{title}</h3>
+        <h3 className='text-[#0C2AF2] px-2 text-lg'>{escapeHtml(title)}</h3>
         <div className='px-2'>
-          <p className='text-[12px] line-clamp-2   text-[#343D4E]'>{content}</p>
+          <p className='text-[12px] line-clamp-2   text-[#343D4E]'>{escapeHtml(content)}</p>
         </div>
       </div>
 
@@ -75,7 +76,7 @@ const QuestionCard = ({ question, onClick, showDelete = false }) => {
           <span
             key={tag.id || tag.name}
             className='text-sm bg-[#E4E6FA] text-[#0f0f0f] px-2 py-0.5 rounded'>
-            {tag.name}
+            {escapeHtml(tag.name)}
           </span>
         ))}
       </div>
@@ -83,7 +84,7 @@ const QuestionCard = ({ question, onClick, showDelete = false }) => {
       {/* Footer */}
       <div className='flex justify-between items-center px-3 space-x-3 text-sm'>
         <div className='flex space-x-3'>
-          <span className='text-[#0C2AF2]'>{author?.name || "Anonymous"}</span>
+          <span className='text-[#0C2AF2]'>{escapeHtml(author?.name || "Anonymous")}</span>
           <span className='text-[#343D4ED6]/60'>{new Date(createdAt).toLocaleTimeString()}</span>
           <span className='text-[#343D4ED6]/60'>{new Date(createdAt).toLocaleDateString()}</span>
         </div>

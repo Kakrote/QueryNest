@@ -1,5 +1,6 @@
 import { createQuestion, getAllQuestions, deleteQuestion } from "@/controllers/questionController";
 import { verifyAuth } from "@/middleware/auth";
+import { validateQuestionData, checkRateLimit } from "@/utils/serverValidation";
 
 
 export async function POST(req) {
@@ -7,14 +8,24 @@ export async function POST(req) {
     const user = await verifyAuth(req);
     console.log("verification done user: ",user)
     if (!user) return new Response(JSON.stringify({ message: "User unauthorized" }), { status: 400 });
+    
+    // Rate limiting - 5 questions per minute per user
+    if (!checkRateLimit(`question:${user.userId}`, 5, 60000)) {
+        return new Response(JSON.stringify({ message: "Rate limit exceeded. Please wait before posting another question." }), { status: 429 });
+    }
+    
     try {
         const body = await req.json()
         const { title, content, tags } = body;
 
+        // Validate and sanitize input data
+        const validation = validateQuestionData({ title, content, tags });
+        if (!validation.isValid) {
+            return new Response(JSON.stringify({ message: validation.error }), { status: 400 });
+        }
+
         const result = await createQuestion({
-            title,
-            content,
-            tags,
+            ...validation.data,
             authorId: user.userId,
         })
         return new Response(JSON.stringify(result), {
