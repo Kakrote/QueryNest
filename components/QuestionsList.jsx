@@ -5,6 +5,7 @@ import { fetchQuestions } from '@/redux/slices/questionSlice'
 import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import QuestionCard from './QestionCard'
+import { sanitizeSearchQuery } from '@/utils/sanitize'
 
 const pageSize = 10;
 

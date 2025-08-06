@@ -2,13 +2,16 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect } from "react";
 import { Bold, Italic, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, BlocksIcon, Code2, Minus, Undo2, Redo2, Pilcrow } from "lucide-react";
+import { sanitizeRichText } from "@/utils/sanitize";
 
 const TiptapEditor = ({ value, onChange, placeholder = "Start typing..." }) => {
   const editor = useEditor({
     extensions: [StarterKit],
     content: value || "",
     onUpdate({ editor }) {
-      onChange(editor.getHTML());
+      // Sanitize content before passing it to onChange
+      const sanitizedContent = sanitizeRichText(editor.getHTML());
+      onChange(sanitizedContent);
     },
     immediatelyRender: false,
     editorProps: {
@@ -21,7 +24,9 @@ const TiptapEditor = ({ value, onChange, placeholder = "Start typing..." }) => {
 
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value || "");
+      // Sanitize value before setting content
+      const sanitizedValue = sanitizeRichText(value || "");
+      editor.commands.setContent(sanitizedValue);
     }
   }, [editor, value]);
 

@@ -1,5 +1,6 @@
 import { Groq } from 'groq-sdk'; 
 import { verifyAuth } from '@/middleware/auth'; 
+import { sanitizePlainText } from '@/utils/sanitize';
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY, 
@@ -24,14 +25,18 @@ export async function POST(req) {
     return new Response(JSON.stringify({ message: "No input text provided." }), { status: 400 });
   }
 
+  // Sanitize input text to prevent injection attacks
+  const sanitizedText = sanitizePlainText(text);
+  const sanitizedType = sanitizePlainText(type || '');
+
   try {
     let prompt;
     
     // Different prompts for different types of content
-    if (type === 'tags') {
-      prompt = `Correct the spelling of these comma-separated tags. Keep them as comma-separated tags, only fix spelling errors. Do not change the format or add explanations:\n\n${text}`;
+    if (sanitizedType === 'tags') {
+      prompt = `Correct the spelling of these comma-separated tags. Keep them as comma-separated tags, only fix spelling errors. Do not change the format or add explanations:\n\n${sanitizedText}`;
     } else {
-      prompt = `Correct the grammar, spelling, and logic of the following sentence. Return ONLY the corrected version, with NO explanation, quotes, or formatting:\n\n${text}`;
+      prompt = `Correct the grammar, spelling, and logic of the following sentence. Return ONLY the corrected version, with NO explanation, quotes, or formatting:\n\n${sanitizedText}`;
     }
 
     const completion = await groq.chat.completions.create({

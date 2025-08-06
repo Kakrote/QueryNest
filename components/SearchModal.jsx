@@ -5,6 +5,7 @@ import { searchQuestions, clearSearchResults } from '@/redux/slices/questionSlic
 import { useRouter } from 'next/navigation';
 import { Search, X, Loader } from 'lucide-react';
 import QuestionCard from './QestionCard';
+import { sanitizeSearchQuery } from '@/utils/sanitize';
 
 const SearchModal = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
@@ -18,7 +19,8 @@ const SearchModal = ({ isOpen, onClose }) => {
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedQuery(query.trim());
+      const sanitizedQuery = sanitizeSearchQuery(query.trim());
+      setDebouncedQuery(sanitizedQuery);
     }, 300);
 
     return () => clearTimeout(timer);

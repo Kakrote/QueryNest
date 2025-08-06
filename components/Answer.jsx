@@ -4,6 +4,7 @@ import { updateAnswer, deleteAnswer, clearUpdateSuccess, clearDeleteSuccess } fr
 import { Edit, Trash2, Save, X } from 'lucide-react';
 import VotingButtons from './VotingButtons';
 import TiptapEditor from './TiptapEditor';
+import { sanitizeRichText, escapeHtml } from '@/utils/sanitize';
 
 const Answer = ({ answer }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -134,7 +135,7 @@ const Answer = ({ answer }) => {
           ) : (
             <div 
               className="prose prose-sm max-w-none text-gray-800 mb-4"
-              dangerouslySetInnerHTML={{ __html: content }}
+              dangerouslySetInnerHTML={{ __html: sanitizeRichText(content) }}
             />
           )}
 
@@ -143,7 +144,7 @@ const Answer = ({ answer }) => {
             {/* Author and Date */}
             <div className="flex items-center space-x-3 text-sm text-gray-500">
               <span className="text-blue-600 font-medium">
-                {author?.name || "Anonymous"}
+                {escapeHtml(author?.name || "Anonymous")}
               </span>
               <span>•</span>
               <span>{new Date(createdAt).toLocaleDateString()}</span>
