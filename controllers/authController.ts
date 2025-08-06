@@ -25,7 +25,7 @@ interface ApiResponse {
 
 //Register new User 
 export const registerUser = async ({ name, email, password }: RegisterParams): Promise<ApiResponse> => {
-    if(!name||!email||!password) return {status:400,message:"All the fileds are required"}
+    if(!name||!email||!password) return {status:400,message:"All the fields are required"}
     
     // Sanitize user inputs to prevent XSS
     const sanitizedName = sanitizePlainText(name);
