@@ -33,7 +33,7 @@ export async function POST(req) {
         });
     }
     catch (err) {
-        console.error(err);
+        console.error("Error creating question:", err);
         return new Response(JSON.stringify({ message: 'Server error' }), {
             status: 500,
         });

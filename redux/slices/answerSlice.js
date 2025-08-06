@@ -1,6 +1,26 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+// Helper function to safely access localStorage
+const safeLocalStorage = {
+    getItem: (key) => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(key);
+        }
+        return null;
+    },
+    setItem: (key, value) => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(key, value);
+        }
+    },
+    removeItem: (key) => {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(key);
+        }
+    }
+};
+
 // Async thunk for fetching answers by question ID
 export const fetchAnswersByQuestionId = createAsyncThunk(
   'answer/fetchAnswersByQuestionId',
@@ -24,7 +44,7 @@ export const submitAnswer = createAsyncThunk(
   'answer/submitAnswer',
   async ({ content, questionslug }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = safeLocalStorage.getItem('token');
       if (!token) {
         throw new Error('Authentication required');
       }
@@ -54,7 +74,7 @@ export const updateAnswer = createAsyncThunk(
   'answer/updateAnswer',
   async ({ answerId, newContent }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = safeLocalStorage.getItem('token');
       if (!token) {
         throw new Error('Authentication required');
       }
@@ -84,7 +104,7 @@ export const deleteAnswer = createAsyncThunk(
   'answer/deleteAnswer',
   async (answerId, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = safeLocalStorage.getItem('token');
       if (!token) {
         throw new Error('Authentication required');
       }

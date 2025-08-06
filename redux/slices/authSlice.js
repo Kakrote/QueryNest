@@ -1,15 +1,34 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-// async trunks for login
 
+// Helper function to safely access localStorage
+const safeLocalStorage = {
+    getItem: (key) => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(key);
+        }
+        return null;
+    },
+    setItem: (key, value) => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(key, value);
+        }
+    },
+    removeItem: (key) => {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(key);
+        }
+    }
+};
+
+// async trunks for login
 export const loginUser = createAsyncThunk(
     'auth/loginUser',
     async (craditionals, { rejectWithValue }) => {
-        localStorage.removeItem('token')
+        safeLocalStorage.removeItem('token')
         try {
             console.log("In auth slice ")
             const res = await axios.post('/api/auth/login', craditionals);
-            // localStorage.setItem("token", res.data.token); // saving the token in the localstorage
             console.log("cradintials: ",craditionals)
             console.log("geeting out from auth slice")
 
@@ -34,7 +53,7 @@ const authSlice = createSlice({
         logout: (state) => {
             state.token = null;
             state.user = null;
-            localStorage.removeItem("token");
+            safeLocalStorage.removeItem("token");
         },
         setCredentials: (state, action) => {
             state.token = action.payload.token;
@@ -51,7 +70,7 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.user = action.payload.user;
                 state.token = action.payload.token;
-                localStorage.setItem('token', action.payload.token);
+                safeLocalStorage.setItem('token', action.payload.token);
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;

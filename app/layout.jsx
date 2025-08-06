@@ -1,7 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Roboto } from "next/font/google";
-import ProviderWrrper from "@/redux/Providers";
+import ProviderWrapper from "@/redux/Providers";
 import ClientLayout from "@/components/ClientLayout";
 
 const geistSans = Geist({
@@ -32,11 +32,11 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} font-roboto antialiased`}
       >
-        <ProviderWrrper>
+        <ProviderWrapper>
           <ClientLayout>
             {children}
           </ClientLayout>
-        </ProviderWrrper>
+        </ProviderWrapper>
       </body>
     </html>
   );
