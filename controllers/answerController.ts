@@ -1,8 +1,34 @@
 import { prisma } from "@/lib/prisma";
 import { sanitizeRichText } from "@/utils/sanitize";
 
+// Types
+interface AnswerQuestionParams {
+    questionslug: string;
+    content: string;
+    authorId: string;
+}
+
+interface UpdateAnswerParams {
+    answerId: string;
+    authorId: string;
+    newContent: string;
+}
+
+interface DeleteAnswerParams {
+    answerId: string;
+    authorId: string;
+}
+
+interface ApiResponse {
+    status: number;
+    message?: string;
+    answer?: any;
+    answers?: any[];
+    update?: any;
+}
+
 // write an answer 
-export const answerQuestion=async({questionslug,content,authorId})=>{
+export const answerQuestion = async ({ questionslug, content, authorId }: AnswerQuestionParams): Promise<ApiResponse> => {
     if(!questionslug||!content) return {status:400,message:"Filds are required !"};
     
     // Sanitize content to prevent XSS
@@ -34,7 +60,7 @@ export const answerQuestion=async({questionslug,content,authorId})=>{
 
 // update an answer
 
-export const updateAnswer=async({answerId,authorId,newContent})=>{
+export const updateAnswer = async ({ answerId, authorId, newContent }: UpdateAnswerParams): Promise<ApiResponse> => {
     if(!answerId||!authorId||!newContent) return {status:400,message:"Filds are required !"};
     
     // Sanitize content to prevent XSS
@@ -68,7 +94,7 @@ export const updateAnswer=async({answerId,authorId,newContent})=>{
 
 // delete the answer
 
-export const deleteAnswer=async({answerId,authorId})=>{
+export const deleteAnswer = async ({ answerId, authorId }: DeleteAnswerParams): Promise<ApiResponse> => {
     console.log("answerId: ",answerId)
     // console.log("authorId: ",authorId)
     if(!answerId||!authorId) return {status:400,message:"Filds are required !"}
@@ -90,7 +116,7 @@ export const deleteAnswer=async({answerId,authorId})=>{
 
 // fething all the answers for an question
 
-export const getAnswersByQuestionId = async (questionId) => {
+export const getAnswersByQuestionId = async (questionId: string): Promise<ApiResponse> => {
   if (!questionId) return { status: 400, message: "Question ID is required" };
 
   try {
@@ -132,7 +158,7 @@ export const getAnswersByQuestionId = async (questionId) => {
 };
 
 // get answers by user ID
-export const getAnswersByUserId = async (userId) => {
+export const getAnswersByUserId = async (userId: string): Promise<ApiResponse> => {
   if (!userId) return { status: 400, message: "User ID is required" };
 
   try {

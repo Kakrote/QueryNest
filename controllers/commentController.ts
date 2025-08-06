@@ -1,6 +1,20 @@
 import { prisma } from "@/lib/prisma";
 
-export const makeComment = async ({ content, authorId, questionId = null, answerId = null }) => {
+// Types
+interface MakeCommentParams {
+    content: string;
+    authorId: string;
+    questionId?: string | null;
+    answerId?: string | null;
+}
+
+interface ApiResponse {
+    status: number;
+    message: string;
+    comment?: any;
+}
+
+export const makeComment = async ({ content, authorId, questionId = null, answerId = null }: MakeCommentParams): Promise<ApiResponse> => {
     console.log("content:",content)
     console.log("authorId:",authorId)
     if (!content || !authorId || (!questionId && !answerId)) {

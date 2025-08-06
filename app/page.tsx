@@ -29,7 +29,7 @@ export default function Home() {
     }
   }, [user, activeTab, dispatch, router]);
 
-  const handleQuestionClick = (id, slug) => {
+  const handleQuestionClick = (id: string, slug: string) => {
     router.push(`/questions/${id}/${slug}`);
   };
 

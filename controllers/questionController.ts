@@ -2,7 +2,25 @@ import { prisma } from "@/lib/prisma";
 import { slugify } from "@/utils/slugify";
 import { sanitizePlainText, sanitizeRichText } from "@/utils/sanitize";
 
-export const createQuestion = async ({ title, content, tags, authorId })=>{
+// Types
+interface CreateQuestionParams {
+    title: string;
+    content: string;
+    tags: string[] | string;
+    authorId: string;
+}
+
+interface ApiResponse {
+    status: number;
+    message?: string;
+    question?: any;
+    questions?: any[];
+    data?: any;
+    answers?: any[];
+    answer?: any;
+}
+
+export const createQuestion = async ({ title, content, tags, authorId }: CreateQuestionParams): Promise<ApiResponse> => {
     if (!title || !content || !tags) return { status: 400, message: "fileds are required " };
     console.log("creating Question")
     
@@ -98,7 +116,7 @@ export const getAllQuestions = async ({ page = 1, limit = 10, sort = "latest" })
 
 
 
-export const getUserQuestions = async (userId) => {
+export const getUserQuestions = async (userId: string): Promise<ApiResponse> => {
   try {
     const questions = await prisma.question.findMany({
       where: {
@@ -125,7 +143,7 @@ export const getUserQuestions = async (userId) => {
 };
 
 
-export const getQuestionBySlug = async (slug) => {
+export const getQuestionBySlug = async (slug: string): Promise<ApiResponse> => {
   try {
     const question = await prisma.question.findUnique({
       where: { slug },
@@ -165,7 +183,7 @@ export const getQuestionBySlug = async (slug) => {
 
 
 
-export const getQuestionsByTag = async (tagName) => {
+export const getQuestionsByTag = async (tagName: string): Promise<ApiResponse> => {
   if (!tagName) return { status: 400, message: "Tag is required." };
 
   try {
@@ -196,7 +214,7 @@ export const getQuestionsByTag = async (tagName) => {
 
 
 
-export const searchQuestions = async (query) => {
+export const searchQuestions = async (query: string): Promise<ApiResponse> => {
   if (!query) return { status: 400, message: "Query is required." };
 
   try {
@@ -225,7 +243,12 @@ export const searchQuestions = async (query) => {
 };
 
 // Delete a question (only by the author)
-export const deleteQuestion = async ({ questionId, authorId }) => {
+interface DeleteQuestionParams {
+    questionId: string;
+    authorId: string;
+}
+
+export const deleteQuestion = async ({ questionId, authorId }: DeleteQuestionParams): Promise<ApiResponse> => {
   if (!questionId || !authorId) return { status: 400, message: "Question ID and Author ID are required." };
 
   try {

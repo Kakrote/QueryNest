@@ -1,40 +1,76 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 
+// Types
+interface Question {
+    id: string;
+    title: string;
+    content: string;
+    slug: string;
+    createdAt: string;
+    updatedAt: string;
+    // Add other question fields as needed
+}
+
+interface Answer {
+    id: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+    // Add other answer fields as needed
+}
+
+interface UserContentState {
+    userQuestions: Question[];
+    userAnswers: Answer[];
+    loading: boolean;
+    error: string | null;
+}
+
 // Fetch user's questions
-export const fetchUserQuestions = createAsyncThunk(
+export const fetchUserQuestions = createAsyncThunk<
+    Question[],
+    string,
+    { rejectValue: string }
+>(
     'userContent/fetchUserQuestions',
-    async (userId, { rejectWithValue }) => {
+    async (userId: string, { rejectWithValue }) => {
         try {
             const res = await axios.get(`/api/users/${userId}/questions`);
             return res.data.questions;
-        } catch (error) {
+        } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || "Failed to fetch user questions");
         }
     }
 );
 
 // Fetch user's answers
-export const fetchUserAnswers = createAsyncThunk(
+export const fetchUserAnswers = createAsyncThunk<
+    Answer[],
+    string,
+    { rejectValue: string }
+>(
     'userContent/fetchUserAnswers',
-    async (userId, { rejectWithValue }) => {
+    async (userId: string, { rejectWithValue }) => {
         try {
             const res = await axios.get(`/api/users/${userId}/answers`);
             return res.data.answers;
-        } catch (error) {
+        } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || "Failed to fetch user answers");
         }
     }
 );
 
+const initialState: UserContentState = {
+    userQuestions: [],
+    userAnswers: [],
+    loading: false,
+    error: null,
+};
+
 const userContentSlice = createSlice({
     name: "userContent",
-    initialState: {
-        userQuestions: [],
-        userAnswers: [],
-        loading: false,
-        error: null,
-    },
+    initialState,
     reducers: {
         resetUserContent: (state) => {
             state.userQuestions = [];
