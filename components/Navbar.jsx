@@ -4,11 +4,13 @@ import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { LucideMenu } from "lucide-react";
 import { SearchIcon, LucideUserCircle2, Bell, Settings, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import SearchModal from "./SearchModal";
 
 export default function Navbar({ toggleMenu }) {
   const dispatch = useAppDispatch();
   const { user, token } = useAppSelector((s) => s.auth);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -19,9 +21,20 @@ export default function Navbar({ toggleMenu }) {
       }
     };
 
+    const handleKeyDown = (event) => {
+      // Open search modal with Ctrl+K or Cmd+K
+      if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+        event.preventDefault();
+        setShowSearchModal(true);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
@@ -43,7 +56,17 @@ export default function Navbar({ toggleMenu }) {
       </div>
 
       <div  className="ml-auto flex gap-5">
-        <SearchIcon />
+        <button 
+          onClick={() => setShowSearchModal(true)}
+          className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+          title="Search (Ctrl+K)"
+        >
+          <SearchIcon className="w-5 h-5" />
+          <span className="hidden md:block text-sm">Search</span>
+          <span className="hidden md:block text-xs text-gray-400 border border-gray-300 rounded px-1">
+            Ctrl+K
+          </span>
+        </button>
         {!token ? (
           <div className="flex space-x-3 items-center justify-center gap-5">
             <Link href={"/auth/login"}>
@@ -91,6 +114,12 @@ export default function Navbar({ toggleMenu }) {
           </div>
         )}
       </div>
+
+      {/* Search Modal */}
+      <SearchModal 
+        isOpen={showSearchModal} 
+        onClose={() => setShowSearchModal(false)} 
+      />
     </nav>
   );
 }

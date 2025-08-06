@@ -2,19 +2,31 @@
 import { prisma } from "@/lib/prisma";
 import bcrypt, { hash } from 'bcrypt'
 import jwt from "jsonwebtoken"
+import { sanitizePlainText } from "@/utils/sanitize";
 
 //Register new User 
 
 export const registerUser=async({name,email,password})=>{
     if(!name||!email||!password) return {status:400,message:"All the fileds are required"}
+    
+    // Sanitize user inputs to prevent XSS
+    const sanitizedName = sanitizePlainText(name);
+    const sanitizedEmail = sanitizePlainText(email);
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(sanitizedEmail)) {
+        return {status:400,message:"Invalid email format"}
+    }
+    
     try{
-        const existingUser=await prisma.user.findUnique({where:{email}})
+        const existingUser=await prisma.user.findUnique({where:{email: sanitizedEmail}})
         if(existingUser) return {status:401,message:"User already exist"}
         const hashPassword=await bcrypt.hash(password,10)
         const newUser=await prisma.user.create({
             data:{
-                name,
-                email,
+                name: sanitizedName,
+                email: sanitizedEmail,
                 password:hashPassword
             }
         })
@@ -30,11 +42,20 @@ export const registerUser=async({name,email,password})=>{
 
 export const loginUser=async({email,password})=>{
     if(!email||!password) return {status:401,message:"these filed cant be empty"}
+    
+    // Sanitize email input
+    const sanitizedEmail = sanitizePlainText(email);
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(sanitizedEmail)) {
+        return {status:400,message:"Invalid email format"}
+    }
+    
     console.log("login conroller active ")
-    console.log("email:",email)
-    console.log("password: ",password)
+    console.log("email:",sanitizedEmail)
     try{
-        const user=await prisma.user.findUnique({where:{email}});
+        const user=await prisma.user.findUnique({where:{email: sanitizedEmail}});
         if(!user) return {
             status:402,
             message:"User not Found "

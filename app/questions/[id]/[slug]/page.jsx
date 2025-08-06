@@ -10,6 +10,7 @@ import VotingButtons from '@/components/VotingButtons';
 import Answer from '@/components/Answer';
 import { fetchAnswersByQuestionId, submitAnswer, clearSubmitSuccess } from '@/redux/slices/answerSlice';
 import { deleteQuestion } from '@/redux/slices/questionSlice';
+import { sanitizeRichText, escapeHtml } from '@/utils/sanitize';
 import axios from 'axios';
 // import { headers } from 'next/headers';
 
@@ -122,7 +123,7 @@ const QuestionPage = () => {
       {/* Question Card */}
       <section className='mt-6 border-b pb-4'>
         {/* Title */}
-        <h1 className='text-3xl  text-[#0C2AF2]'>{title}</h1>
+        <h1 className='text-3xl  text-[#0C2AF2]'>{escapeHtml(title)}</h1>
 
         {/* Vote & Answer count */}
         <div className='mt-2 flex space-x-6 text-gray-700 text-[13px]'>
@@ -164,7 +165,10 @@ const QuestionPage = () => {
         {/* Right Content */}
         <div className='flex-1'>
           {/* Content */}
-          <p className='text-lg text-gray-800'>{content}</p>
+          <div 
+            className='text-lg text-gray-800 prose prose-sm max-w-none'
+            dangerouslySetInnerHTML={{ __html: sanitizeRichText(content) }}
+          />
 
           {/* Tags */}
           <div className='flex flex-wrap gap-2 mt-3'>
@@ -173,7 +177,7 @@ const QuestionPage = () => {
                 key={tag.id || tag.name || index}
                 className='text-sm bg-[#E4E6FA] text-[#0f0f0f] px-3 py-1 rounded-full'
               >
-                {tag.name}
+                {escapeHtml(tag.name)}
               </span>
             ))}
           </div>

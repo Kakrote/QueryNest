@@ -6,6 +6,7 @@ import { updateUserAnswer, removeUserAnswer } from '@/redux/slices/userContentSl
 import { Edit, Trash2, Save, X } from 'lucide-react';
 import VotingButtons from './VotingButtons';
 import TiptapEditor from './TiptapEditor';
+import { sanitizePlainText, escapeHtml } from '@/utils/sanitize';
 
 const AnswerCard = ({ answer, onClick, onRefresh }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -138,7 +139,7 @@ const AnswerCard = ({ answer, onClick, onRefresh }) => {
             className={`${!isEditing ? 'cursor-pointer hover:bg-gray-50' : ''} p-2 rounded`}
             onClick={handleClick}
           >
-            <h3 className='text-[#0C2AF2] text-base sm:text-lg font-medium leading-tight break-words'>{question?.title || "Unknown Question"}</h3>
+
             
             {/* Answer Content */}
             {isEditing ? (
@@ -152,7 +153,7 @@ const AnswerCard = ({ answer, onClick, onRefresh }) => {
             ) : (
               <div className='mt-2'>
                 <p className='text-[12px] line-clamp-3 text-[#343D4E]'>
-                  Your answer: {content.replace(/<[^>]*>/g, '').substring(0, 150)}...
+                  Your answer: {sanitizePlainText(content.replace(/<[^>]*>/g, '')).substring(0, 150)}...
                 </p>
               </div>
             )}
@@ -163,8 +164,7 @@ const AnswerCard = ({ answer, onClick, onRefresh }) => {
                 {question.tags.map((tag, index) => (
                   <span
                     key={tag.id || tag.name || index}
-                    className='text-sm bg-[#E4E6FA] text-[#0f0f0f] px-2 py-0.5 rounded whitespace-nowrap'>
-                    {tag.name}
+
                   </span>
                 ))}
               </div>

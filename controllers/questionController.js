@@ -1,13 +1,22 @@
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/utils/slugify";
+import { sanitizePlainText, sanitizeRichText } from "@/utils/sanitize";
 
 export const createQuestion = async ({ title, content, tags, authorId })=>{
     if (!title || !content || !tags) return { status: 400, message: "fileds are required " };
     console.log("creating Question")
+    
+    // Sanitize inputs to prevent XSS
+    const sanitizedTitle = sanitizePlainText(title);
+    const sanitizedContent = sanitizeRichText(content);
+    const sanitizedTags = Array.isArray(tags) 
+        ? tags.map(tag => sanitizePlainText(tag))
+        : [sanitizePlainText(tags)];
+    
     try {
-        const slug = slugify(title);
+        const slug = slugify(sanitizedTitle);
         const tagRecords = await Promise.all(
-            tags.map(async (tagName) => {
+            sanitizedTags.map(async (tagName) => {
                 return prisma.tag.upsert({
                     where: { name: tagName },
                     update: {},
@@ -17,8 +26,8 @@ export const createQuestion = async ({ title, content, tags, authorId })=>{
         );
         const question=await prisma.question.create({
             data:{
-                title,
-                content,
+                title: sanitizedTitle,
+                content: sanitizedContent,
                 slug,
                 authorId:authorId,
                 tags:{

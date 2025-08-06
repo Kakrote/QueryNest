@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { fetchUserQuestions, fetchUserAnswers } from '@/redux/slices/userContentSlice';
 import QuestionCard from '@/components/QestionCard';
 import AnswerCard from '@/components/AnswerCard';
+import { escapeHtml } from '@/utils/sanitize';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('questions');
@@ -68,7 +69,7 @@ export default function Home() {
     <main className="mt-16 px-4 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Welcome, {user.name}!</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Welcome, {escapeHtml(user.name)}!</h1>
         <button
           onClick={handleAskQuestion}
           className="px-4 py-2 bg-[#4255FF] text-white text-sm rounded hover:bg-[#3a4ce3] active:scale-95 transition"
