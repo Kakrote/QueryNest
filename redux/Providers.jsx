@@ -7,7 +7,6 @@ const ProviderWrrper = ({ children }) => {
     return <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
             {children}
-            {console.log("redux mounted")}
         </PersistGate>
     </Provider>
 }
