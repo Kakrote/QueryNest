@@ -1,3 +1,4 @@
+"use client"
 /**
  * XSS Protection Utilities for QueryNest
  * Provides comprehensive sanitization for user-generated content
@@ -9,7 +10,7 @@ type SanitizeType = 'RICH_TEXT' | 'PLAIN_TEXT' | 'SEARCH';
 
 interface SanitizeConfig {
   ALLOWED_TAGS: string[];
-  ALLOWED_ATTR: { [key: string]: string[] };
+  ALLOWED_ATTR: string[];
   FORBID_TAGS?: string[];
   FORBID_ATTR?: string[];
   KEEP_CONTENT: boolean;
@@ -28,10 +29,7 @@ const SANITIZE_CONFIGS: Record<SanitizeType, SanitizeConfig> = {
       'blockquote', 'pre', 'code',
       'hr', 'a'
     ],
-    ALLOWED_ATTR: {
-      'a': ['href', 'title'],
-      '*': ['class'] // Allow class attributes for styling
-    },
+    ALLOWED_ATTR: ['href', 'title', 'class'],
     FORBID_TAGS: ['script', 'object', 'embed', 'iframe', 'form', 'input', 'textarea', 'button'],
     FORBID_ATTR: ['onclick', 'onload', 'onerror', 'onmouseover', 'onsubmit', 'onfocus', 'onblur'],
     KEEP_CONTENT: true
@@ -40,14 +38,14 @@ const SANITIZE_CONFIGS: Record<SanitizeType, SanitizeConfig> = {
   // For plain text (titles, tags, user names) - strips all HTML
   PLAIN_TEXT: {
     ALLOWED_TAGS: [],
-    ALLOWED_ATTR: {},
+    ALLOWED_ATTR: [],
     KEEP_CONTENT: true
   },
 
   // For search queries - very restrictive
   SEARCH: {
     ALLOWED_TAGS: [],
-    ALLOWED_ATTR: {},
+    ALLOWED_ATTR: [],
     KEEP_CONTENT: true
   }
 };
@@ -72,8 +70,7 @@ export const sanitizeContent = (content: string, type: SanitizeType = 'RICH_TEXT
     FORBID_ATTR: config.FORBID_ATTR,
     KEEP_CONTENT: config.KEEP_CONTENT,
     RETURN_DOM: false,
-    RETURN_DOM_FRAGMENT: false,
-    RETURN_DOM_IMPORT: false
+    RETURN_DOM_FRAGMENT: false
   });
 };
 
