@@ -9,8 +9,8 @@ import TiptapEditor from '@/components/TiptapEditor';
 import VotingButtons from '@/components/VotingButtons';
 import Answer from '@/components/Answer';
 import { fetchAnswersByQuestionId, submitAnswer, clearSubmitSuccess } from '@/redux/slices/answerSlice';
-import { deleteQuestion } from '@/redux/slices/questionSlice';
-import axios from 'axios';
+import { deleteQuestion, fetchQuestionById, clearCurrentQuestion } from '@/redux/slices/questionSlice';
+import { sanitizeContent } from '@/utils/sanitizeHtml';
 // import { headers } from 'next/headers';
 
 
@@ -23,8 +23,21 @@ const QuestionPage = () => {
   // Redux state
   const { user } = useAppSelector((state) => state.auth);
   const { answers: answerData, loading: answersLoading, submitLoading, submitSuccess, submitError } = useAppSelector((state) => state.answer);
+  const { currentQuestion: questionData, currentQuestionLoading, currentQuestionError } = useAppSelector((state) => state.question);
   
   const questionAnswers = answerData[id] || [];
+
+  // Fetch question by ID
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchQuestionById(id));
+    }
+    
+    // Cleanup when component unmounts
+    return () => {
+      dispatch(clearCurrentQuestion());
+    };
+  }, [dispatch, id]);
 
   useEffect(() => {
     if (id) {
@@ -58,7 +71,7 @@ const QuestionPage = () => {
   };
 
   const handleDeleteQuestion = async () => {
-    if (!user || user.id !== question?.author?.id) {
+    if (!user || user.id !== questionData?.author?.id) {
       alert('You can only delete your own questions');
       return;
     }
@@ -77,11 +90,41 @@ const QuestionPage = () => {
       }
     }
   };
-  const question = useAppSelector((state) =>
-    state.question.questions.find((q) => String(q.id) === String(id))
-  );
+  
+  // Loading and error states
+  if (currentQuestionLoading) {
+    return <div className="mt-20 text-center text-gray-500">Loading question...</div>;
+  }
+  
+  if (currentQuestionError) {
+    return (
+      <div className="mt-20 text-center">
+        <div className="text-red-500 mb-4">{currentQuestionError}</div>
+        <button 
+          onClick={() => router.push('/questions')}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Back to Questions
+        </button>
+      </div>
+    );
+  }
+  
+  if (!questionData) {
+    return (
+      <div className="mt-20 text-center">
+        <div className="text-gray-500 mb-4">Question not found</div>
+        <button 
+          onClick={() => router.push('/questions')}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Back to Questions
+        </button>
+      </div>
+    );
+  }
 
-  if (!question) return <div className="mt-20 text-center text-gray-500">Loading...</div>;
+  const question = questionData;
 
   const {
     title,
@@ -164,7 +207,10 @@ const QuestionPage = () => {
         {/* Right Content */}
         <div className='flex-1'>
           {/* Content */}
-          <p className='text-lg text-gray-800'>{content}</p>
+          <div 
+            className='prose prose-lg max-w-none text-gray-800'
+            dangerouslySetInnerHTML={{ __html: sanitizeContent(content) }}
+          />
 
           {/* Tags */}
           <div className='flex flex-wrap gap-2 mt-3'>

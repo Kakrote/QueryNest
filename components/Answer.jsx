@@ -4,6 +4,7 @@ import { updateAnswer, deleteAnswer, clearUpdateSuccess, clearDeleteSuccess } fr
 import { Edit, Trash2, Save, X } from 'lucide-react';
 import VotingButtons from './VotingButtons';
 import TiptapEditor from './TiptapEditor';
+import { sanitizeContent } from '@/utils/sanitizeHtml';
 
 const Answer = ({ answer }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -134,7 +135,7 @@ const Answer = ({ answer }) => {
           ) : (
             <div 
               className="prose prose-sm max-w-none text-gray-800 mb-4"
-              dangerouslySetInnerHTML={{ __html: content }}
+              dangerouslySetInnerHTML={{ __html: sanitizeContent(content) }}
             />
           )}
 

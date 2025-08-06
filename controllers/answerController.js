@@ -1,16 +1,20 @@
 import { prisma } from "@/lib/prisma";
+import { sanitizeHtmlServer } from "@/utils/sanitizeHtml";
 
 // write an answer 
 export const answerQuestion=async({questionslug,content,authorId})=>{
-    if(!questionslug||!content) return {status:400,message:"Filds are required !"};
+    if(!questionslug||!content) return {status:400,message:"Fields are required !"};
     try{
+        // Sanitize the content to prevent XSS attacks
+        const sanitizedContent = sanitizeHtmlServer(content);
+        
         const question=await prisma.question.findUnique({
             where:{slug:questionslug}
         })
         if(!question) return {status: 404, message: "Question not found!"}
         const answer=await prisma.answer.create({
             data:{
-                content,
+                content: sanitizedContent,
                 questionId:question.id,
                 authorId:authorId
             },
@@ -30,15 +34,18 @@ export const answerQuestion=async({questionslug,content,authorId})=>{
 // update an answer
 
 export const updateAnswer=async({answerId,authorId,newContent})=>{
-    if(!answerId||!authorId||!newContent) return {status:400,message:"Filds are required !"};
+    if(!answerId||!authorId||!newContent) return {status:400,message:"Fields are required !"};
     try{
+        // Sanitize the content to prevent XSS attacks
+        const sanitizedContent = sanitizeHtmlServer(newContent);
+        
         const existing=await prisma.answer.findUnique({
             where:{id:answerId}
         })
         if(!existing||existing.authorId!==authorId) return {status:400,message:"unauthorized or answer not found !"};
         const update=await prisma.answer.update({
             where:{id:answerId},
-            data:{content:newContent},
+            data:{content:sanitizedContent},
             include:{
                 author:{
                     select:{

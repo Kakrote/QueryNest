@@ -1,11 +1,33 @@
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/utils/slugify";
+import { sanitizeHtmlServer } from "@/utils/sanitizeHtml";
 
 export const createQuestion = async ({ title, content, tags, authorId })=>{
-    if (!title || !content || !tags) return { status: 400, message: "fileds are required " };
+    if (!title || !content || !tags) return { status: 400, message: "fields are required " };
     console.log("creating Question")
     try {
-        const slug = slugify(title);
+        // Sanitize the content to prevent XSS attacks
+        const sanitizedContent = sanitizeHtmlServer(content);
+        
+        let slug = slugify(title);
+        
+        // Check if slug already exists and make it unique
+        let existingQuestion = await prisma.question.findUnique({
+            where: { slug }
+        });
+        
+        let counter = 1;
+        let originalSlug = slug;
+        
+        // If slug exists, append a number to make it unique
+        while (existingQuestion) {
+            slug = `${originalSlug}-${counter}`;
+            existingQuestion = await prisma.question.findUnique({
+                where: { slug }
+            });
+            counter++;
+        }
+        
         const tagRecords = await Promise.all(
             tags.map(async (tagName) => {
                 return prisma.tag.upsert({
@@ -18,7 +40,7 @@ export const createQuestion = async ({ title, content, tags, authorId })=>{
         const question=await prisma.question.create({
             data:{
                 title,
-                content,
+                content: sanitizedContent,
                 slug,
                 authorId:authorId,
                 tags:{
@@ -150,6 +172,33 @@ export const getQuestionBySlug = async (slug) => {
     return { status: 200, question };
   } catch (error) {
     console.error("Error fetching question detail:", error);
+    return { status: 500, message: "Internal Server Error" };
+  }
+};
+
+export const getQuestionById = async (id) => {
+  try {
+    const question = await prisma.question.findUnique({
+      where: { id },
+      include: {
+        author: {
+          select: { id: true, name: true },
+        },
+        tags: true,
+        _count: {
+          select: {
+            answers: true,
+            comments: true,
+            vote: true,
+          },
+        },
+      },
+    });
+
+    if (!question) return { status: 404, message: "Question not found" };
+    return { status: 200, question };
+  } catch (error) {
+    console.error("Error fetching question by ID:", error);
     return { status: 500, message: "Internal Server Error" };
   }
 };

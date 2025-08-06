@@ -61,16 +61,33 @@ export const deleteQuestion = createAsyncThunk(
     }
 )
 
+// Fetch question by ID
+export const fetchQuestionById = createAsyncThunk(
+    'question/fetchQuestionById',
+    async (questionId, { rejectWithValue }) => {
+        try {
+            const res = await axios.get(`/api/questions/by-id?id=${questionId}`);
+            return res.data.question;
+        }
+        catch (error) {
+            return rejectWithValue(error.response?.data?.message || "Failed to fetch question");
+        }
+    }
+)
+
 
 const questionSlice = createSlice({
     name: "question",
     initialState: {
         questions: [],
+        currentQuestion: null,
         total: 0,
         page: 1,
         totalPages: 1,
         loading: false,
+        currentQuestionLoading: false,
         error: null,
+        currentQuestionError: null,
         success:false,
     },
     reducers: {
@@ -78,6 +95,11 @@ const questionSlice = createSlice({
             state.loading = false;
             state.success = false;
             state.error = null;
+        },
+        clearCurrentQuestion: (state) => {
+            state.currentQuestion = null;
+            state.currentQuestionLoading = false;
+            state.currentQuestionError = null;
         },
     },
     extraReducers: (builder) => {
@@ -124,10 +146,22 @@ const questionSlice = createSlice({
             .addCase(deleteQuestion.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
-            });;
+            })
+            .addCase(fetchQuestionById.pending, (state) => {
+                state.currentQuestionLoading = true;
+                state.currentQuestionError = null;
+            })
+            .addCase(fetchQuestionById.fulfilled, (state, action) => {
+                state.currentQuestionLoading = false;
+                state.currentQuestion = action.payload;
+            })
+            .addCase(fetchQuestionById.rejected, (state, action) => {
+                state.currentQuestionLoading = false;
+                state.currentQuestionError = action.payload;
+            });
     }
 })
 
-export const { resetQuestionState } = questionSlice.actions;
+export const { resetQuestionState, clearCurrentQuestion } = questionSlice.actions;
 
 export default questionSlice.reducer;
