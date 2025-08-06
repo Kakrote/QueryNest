@@ -164,7 +164,9 @@ const AnswerCard = ({ answer, onClick, onRefresh }) => {
                 {question.tags.map((tag, index) => (
                   <span
                     key={tag.id || tag.name || index}
-
+                    className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                  >
+                    {tag.name}
                   </span>
                 ))}
               </div>
