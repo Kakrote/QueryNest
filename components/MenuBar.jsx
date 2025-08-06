@@ -1,11 +1,12 @@
 'use client';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAppSelector } from '@/store/hooks';
-import { Home, MessageSquareCode, Tags, Settings, LogIn, Newspaper } from 'lucide-react';
+import { Home, MessageSquareCode, Tags, Settings, LogIn, Newspaper, Search } from 'lucide-react';
 
 const navItems = [
   { name: 'Home', path: '/', icon: Home, authRequired: true },
   { name: 'Questions', path: '/questions', icon: MessageSquareCode },
+  { name: 'Search', path: '/search', icon: Search },
   { name: 'Tags', path: '/tags', icon: Tags },
   { name: 'Articles', path: '/articles', icon: Newspaper },
   { name: 'Settings', path: '/settings', icon: Settings },
@@ -18,7 +19,7 @@ const MenuBar = ({ isOpen, closeSideBar }) => {
   const { token } = useAppSelector((s) => s.auth);
 
   return (
-    <div className="w-[200px] h-[290px] mt-14  space-y-6 bg-[#e2e8f0] text-[#1e1828] rounded-md shadow-lg p-4">
+    <div className="w-[200px] h-[320px] mt-14  space-y-6 bg-[#e2e8f0] text-[#1e1828] rounded-md shadow-lg p-4">
       <div className="space-y-1">
         {!token && (
           <NavItem
