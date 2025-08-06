@@ -94,16 +94,25 @@ const askQuestions = () => {
 
     const onSubmit = async (data) => {
         console.log("Ask Question button hit")
+        
+        // Clean and validate tags
+        const tags = data.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        
         const payload = {
             ...data,
-            tags: data.tags.split(',').map(tag => tag.trim())
+            tags: tags
         };
-        console.log("verfying payload: ",payload)
-        await dispatch(askQuestion(payload));
-        console.log("retruning from api call")
-        if (success) {
+        
+        console.log("verifying payload: ", payload)
+        
+        try {
+            await dispatch(askQuestion(payload)).unwrap();
+            console.log("Question posted successfully")
             reset();
-            router.push('/')
+            router.push('/questions'); // Navigate to questions list instead of home
+        } catch (error) {
+            console.error("Error posting question:", error);
+            // Error is already handled by Redux state, so user will see it in the UI
         }
     }
 
@@ -124,12 +133,37 @@ const askQuestions = () => {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-6 max-w-4xl mx-auto">
+                {/* Error Display */}
+                {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                        <p className="font-medium">Error posting question:</p>
+                        <p>{error}</p>
+                    </div>
+                )}
+                
+                {/* Success Display */}
+                {success && (
+                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
+                        <p>Question posted successfully!</p>
+                    </div>
+                )}
+                
                 {/* Title */}
                 <div>
                     <label className="block font-medium mb-2 text-gray-700">Question Title</label>
                     <input
                         type="text"
-                        {...register('title', { required: "Title is required" })}
+                        {...register('title', { 
+                            required: "Title is required",
+                            minLength: {
+                                value: 5,
+                                message: "Title must be at least 5 characters long"
+                            },
+                            maxLength: {
+                                value: 200,
+                                message: "Title must be no more than 200 characters"
+                            }
+                        })}
                         className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         placeholder="Enter a clear, concise question title"
                     />
@@ -143,7 +177,23 @@ const askQuestions = () => {
                         name="content"
                         control={control}
                         defaultValue=""
-                        rules={{ required: "Content is required" }}
+                        rules={{ 
+                            required: "Content is required",
+                            validate: (value) => {
+                                // Extract text content for validation
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = value || '';
+                                const textContent = tempDiv.textContent || tempDiv.innerText || '';
+                                
+                                if (textContent.trim().length < 10) {
+                                    return "Question content must be at least 10 characters long";
+                                }
+                                if (textContent.length > 5000) {
+                                    return "Question content must be no more than 5,000 characters";
+                                }
+                                return true;
+                            }
+                        }}
                         render={({ field }) => (
                             <TiptapEditor 
                                 value={field.value} 
@@ -160,7 +210,30 @@ const askQuestions = () => {
                     <label className="block font-medium mb-2 text-gray-700">Tags</label>
                     <input
                         type="text"
-                        {...register('tags', { required: "At least one tag is required" })}
+                        {...register('tags', { 
+                            required: "At least one tag is required",
+                            validate: (value) => {
+                                const tags = value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+                                
+                                if (tags.length === 0) {
+                                    return "At least one tag is required";
+                                }
+                                if (tags.length > 10) {
+                                    return "Maximum 10 tags allowed";
+                                }
+                                
+                                for (const tag of tags) {
+                                    if (tag.length < 2) {
+                                        return "Each tag must be at least 2 characters long";
+                                    }
+                                    if (tag.length > 30) {
+                                        return "Each tag must be no more than 30 characters";
+                                    }
+                                }
+                                
+                                return true;
+                            }
+                        })}
                         className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         placeholder="e.g., javascript, nextjs, api, react (comma separated)"
                     />

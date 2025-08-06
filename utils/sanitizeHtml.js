@@ -92,7 +92,9 @@ export function sanitizeHtmlServer(html) {
     .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
     .replace(/javascript:/gi, '')
     .replace(/vbscript:/gi, '')
-    .replace(/on\w+\s*=/gi, '')
+    .replace(/data:/gi, '')
+    .replace(/on\w+\s*=\s*['""][^'"]*['"]/gi, '')
+    .replace(/on\w+\s*=\s*[^'"\s>]+/gi, '')
     .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
 }
 

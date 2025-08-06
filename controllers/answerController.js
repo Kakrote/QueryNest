@@ -3,15 +3,39 @@ import { sanitizeHtmlServer } from "@/utils/sanitizeHtml";
 
 // write an answer 
 export const answerQuestion=async({questionslug,content,authorId})=>{
+    // Input validation
     if(!questionslug||!content) return {status:400,message:"Fields are required !"};
+    if(!authorId) return {status:401,message:"Authentication required !"};
+    
+    // Content length validation
+    if(content.trim().length < 10) return {status:400,message:"Answer must be at least 10 characters long !"};
+    if(content.length > 10000) return {status:400,message:"Answer is too long (max 10,000 characters) !"};
+    
     try{
         // Sanitize the content to prevent XSS attacks
         const sanitizedContent = sanitizeHtmlServer(content);
+        
+        // Check if sanitized content is too short after sanitization
+        if(sanitizedContent.trim().length < 5) {
+            return {status:400,message:"Answer content appears to be invalid or too short after processing !"};
+        }
         
         const question=await prisma.question.findUnique({
             where:{slug:questionslug}
         })
         if(!question) return {status: 404, message: "Question not found!"}
+        
+        // Check if user already answered this question
+        const existingAnswer = await prisma.answer.findFirst({
+            where: {
+                questionId: question.id,
+                authorId: authorId
+            }
+        });
+        
+        // Allow multiple answers per user (common in Q&A platforms)
+        // if(existingAnswer) return {status:400,message:"You have already answered this question !"};
+        
         const answer=await prisma.answer.create({
             data:{
                 content: sanitizedContent,
