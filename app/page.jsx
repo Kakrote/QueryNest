@@ -12,7 +12,7 @@ export default function Home() {
   const router = useRouter();
   
   const { user } = useAppSelector((state) => state.auth);
-  const { userQuestions, userAnswers, loading, error } = useAppSelector((state) => state.userContent);
+  const { userQuestions = [], userAnswers = [], loading, error } = useAppSelector((state) => state.userContent);
 
   useEffect(() => {
     if (!user) {

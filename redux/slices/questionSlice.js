@@ -33,7 +33,7 @@ export const fetchQuestions = createAsyncThunk(
     async ({ filter = "latest", page = 1, limit = 10 }, { rejectWithValue }) => {
         try {
             const res = await axios.get(`/api/questions?sort=${filter}&page=${page}&limit=${limit}`);
-            return res.data.data;
+            return res.data;
         }
         catch (error) {
             return rejectWithValue(error.response?.data?.message || "Failed to fetch questions");
@@ -111,14 +111,15 @@ const questionSlice = createSlice({
             })
             .addCase(fetchQuestions.fulfilled, (state, action) => {
                 state.loading = false;
-                state.questions = action.payload.questions;
-                state.total = action.payload.total;
-                state.page = action.payload.page;
-                state.totalPages = action.payload.totalPages;
+                state.questions = action.payload.questions || [];
+                state.total = action.payload.total || 0;
+                state.page = action.payload.page || 1;
+                state.totalPages = action.payload.totalPages || 1;
             })
             .addCase(fetchQuestions.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+                state.questions = []; // Reset to empty array on error
             })
             .addCase(askQuestion.pending, (state) => {
                 state.loading = true;
@@ -128,7 +129,10 @@ const questionSlice = createSlice({
             .addCase(askQuestion.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.questions.unshift(action.payload); // optional: optimistic update
+                // Ensure questions is an array before unshifting
+                if (Array.isArray(state.questions)) {
+                    state.questions.unshift(action.payload); // optional: optimistic update
+                }
             })
             .addCase(askQuestion.rejected, (state, action) => {
                 state.loading = false;
@@ -141,8 +145,10 @@ const questionSlice = createSlice({
             .addCase(deleteQuestion.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                // Remove the deleted question from the state
-                state.questions = state.questions.filter(q => q.id !== action.payload.questionId);
+                // Remove the deleted question from the state, ensure questions is array
+                if (Array.isArray(state.questions)) {
+                    state.questions = state.questions.filter(q => q.id !== action.payload.questionId);
+                }
             })
             .addCase(deleteQuestion.rejected, (state, action) => {
                 state.loading = false;
@@ -154,7 +160,7 @@ const questionSlice = createSlice({
             })
             .addCase(searchQuestions.fulfilled, (state, action) => {
                 state.searchLoading = false;
-                state.searchResults = action.payload;
+                state.searchResults = action.payload?.data || [];
                 state.searchQuery = action.meta.arg;
             })
             .addCase(searchQuestions.rejected, (state, action) => {

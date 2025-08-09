@@ -63,11 +63,12 @@ const userContentSlice = createSlice({
             })
             .addCase(fetchUserQuestions.fulfilled, (state, action) => {
                 state.loading = false;
-                state.userQuestions = action.payload;
+                state.userQuestions = action.payload || [];
             })
             .addCase(fetchUserQuestions.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+                state.userQuestions = []; // Reset to empty array on error
             })
             // User Answers
             .addCase(fetchUserAnswers.pending, (state) => {
@@ -76,11 +77,12 @@ const userContentSlice = createSlice({
             })
             .addCase(fetchUserAnswers.fulfilled, (state, action) => {
                 state.loading = false;
-                state.userAnswers = action.payload;
+                state.userAnswers = action.payload || [];
             })
             .addCase(fetchUserAnswers.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+                state.userAnswers = []; // Reset to empty array on error
             });
     }
 });
