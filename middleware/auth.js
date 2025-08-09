@@ -2,21 +2,16 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Verifies Bearer token and returns decoded payload { userId, email } or null.
 export async function verifyAuth(req) {
   const authHeader = req.headers.get('authorization');
-  // console.log("enter the verification")
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    // console.log("does not found bearer header ")
-    return null;
-  }
-
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
   const token = authHeader.split(' ')[1];
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    // console.log("decoded token: ",decoded);
-    return decoded; // contains userId and email
+    if (!JWT_SECRET) return null; // Misconfiguration safeguard
+    return jwt.verify(token, JWT_SECRET);
   } catch (err) {
-    console.error('JWT error:', err);
+    // Intentionally minimal logging to avoid noise; could integrate structured logger
     return null;
   }
 }

@@ -1,33 +1,22 @@
 import { createQuestion, getAllQuestions, deleteQuestion } from "@/controllers/questionController";
 import { verifyAuth } from "@/middleware/auth";
+import { rateLimit } from "@/middleware/rateLimit";
 
 
 export async function POST(req) {
-    console.log("going for verification")
-    const user = await verifyAuth(req);
-    console.log("verification done user: ",user)
-    if (!user) return new Response(JSON.stringify({ message: "User unauthorized" }), { status: 400 });
+        const limited = rateLimit(req, { action: 'question' });
+        if (limited) return limited.response;
+        const user = await verifyAuth(req);
+    if (!user) return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
     try {
-        const body = await req.json()
+        const body = await req.json();
         const { title, content, tags } = body;
-
-        const result = await createQuestion({
-            title,
-            content,
-            tags,
-            authorId: user.userId,
-        })
-        return new Response(JSON.stringify(result), {
-            status: result.status,
-        });
+        const result = await createQuestion({ title, content, tags, authorId: user.userId });
+        return new Response(JSON.stringify(result), { status: result.status });
+    } catch (err) {
+        console.error('Create question error', err);
+        return new Response(JSON.stringify({ message: 'Server error' }), { status: 500 });
     }
-    catch (err) {
-        console.error(err);
-        return new Response(JSON.stringify({ message: 'Server error' }), {
-            status: 500,
-        });
-    }
-
 }
 
 

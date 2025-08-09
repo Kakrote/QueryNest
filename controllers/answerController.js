@@ -3,7 +3,16 @@ import { prisma } from "@/lib/prisma";
 // write an answer 
 export const answerQuestion=async({questionslug,content,authorId})=>{
     if(!questionslug||!content) return {status:400,message:"Filds are required !"};
-    try{
+    // Groq moderation for answer content
+    try {
+        const { moderateContent } = await import("@/utils/groqModeration");
+        const moderationResult = await moderateContent(content);
+        if (!moderationResult.isAppropriate) {
+            return {
+                status: 403,
+                message: `Answer rejected: ${moderationResult.reason || 'Inappropriate content.'}`
+            };
+        }
         const question=await prisma.question.findUnique({
             where:{slug:questionslug}
         })

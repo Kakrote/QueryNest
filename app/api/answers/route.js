@@ -1,7 +1,10 @@
 import { answerQuestion, updateAnswer, deleteAnswer, getAnswersByQuestionId } from "@/controllers/answerController";
 import { verifyAuth } from "@/middleware/auth";
+import { rateLimit } from "@/middleware/rateLimit";
 
 export async function POST(req) {
+    const limited = rateLimit(req, { action: 'answer' });
+    if (limited) return limited.response;
     const user = await verifyAuth(req);
     if (!user) return new Response(JSON.stringify({ message: "User unauthorized" }), { status: 401 });
     try {
@@ -23,6 +26,8 @@ export async function POST(req) {
 }
 
 export async function PUT(req) {
+    const limited = rateLimit(req, { action: 'answer' });
+    if (limited) return limited.response;
     const user = await verifyAuth(req);
     if (!user) return new Response(JSON.stringify({ message: "User unauthorized" }), { status: 401 });
     try {
@@ -44,6 +49,8 @@ export async function PUT(req) {
 }
 
 export async function DELETE(req) {
+    const limited = rateLimit(req, { action: 'answer' });
+    if (limited) return limited.response;
     const user = await verifyAuth(req);
     if (!user) return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
     try {

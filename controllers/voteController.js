@@ -1,108 +1,62 @@
 import { prisma } from "@/lib/prisma";
 
+const respond = (status, data = null, message = null, error = null) => ({ status, ...(message && { message }), ...(error && { error }), ...(data && data) });
+const logError = (scope, err) => console.error(`[${scope}]`, err?.message || err);
+
 export const vote = async ({ userId, voteType, questionId = null, answerId = null }) => {
-    if (!userId || !voteType || (!questionId && !answerId)) return { status: 400, message: "Fileds are required" };
+    if (!userId || !voteType || (!questionId && !answerId)) return respond(400, null, "Missing required fields");
+    if (!['UP', 'DOWN'].includes(voteType)) return respond(400, null, "Invalid vote type");
     try {
         const existingVote = await prisma.vote.findFirst({
-            where: {
-                userId: userId,
-                questionId: questionId || undefined,
-                answerId: answerId || undefined
-            },
-        })
+            where: { userId, questionId: questionId || undefined, answerId: answerId || undefined },
+        });
         if (existingVote) {
-            // update vote
-            const updateVote = await prisma.vote.update({
+            const updated = await prisma.vote.update({
                 where: { id: existingVote.id },
                 data: { type: voteType },
-                include: {
-                    user: {
-                        select: {
-                            name: true,
-                            email: true
-                        }
-                    }
-                }
-            })
-            return { status: 200, message: "vote updated succesfuly", vote: updateVote }
+                select: { id: true, type: true, questionId: true, answerId: true },
+            });
+            return respond(200, { vote: updated }, "Vote updated");
         }
-        // creating new vote
-        const newVote = await prisma.vote.create({
-            data: {
-                type: voteType,
-                userId,
-                questionId,
-                answerId,
-            }
-        })
-        return { status: 200, message: "Voteing successfull ", vote: newVote }
-
+        const created = await prisma.vote.create({
+            data: { type: voteType, userId, questionId, answerId },
+            select: { id: true, type: true, questionId: true, answerId: true },
+        });
+        return respond(201, { vote: created }, "Vote recorded");
+    } catch (error) {
+        logError('vote', error);
+        return respond(500, null, "Internal server error");
     }
-    catch (error) {
-        console.log(error);
-        return { status: 500, message: "Server Error" }
-    }
-}
+};
 
 
 export const getVoteCount = async ({ questionId = null, answerId = null }) => {
-    if (!questionId && !answerId) {
-        return { status: 400, message: "questionId or answerId is required." };
-    }
-
+    if (!questionId && !answerId) return respond(400, null, "questionId or answerId required");
     try {
         const votes = await prisma.vote.findMany({
-            where: {
-                questionId: questionId || undefined,
-                answerId: answerId || undefined
-            },
-            include: {
-                ...(questionId ? { question: true } : {}),
-                ...(answerId ? { answer: true } : {}),
-            }
+            where: { questionId: questionId || undefined, answerId: answerId || undefined },
+            select: { type: true },
         });
-
-
-        const upvotes = votes.filter(v => v.type === "UP").length;
-        const downvotes = votes.filter(v => v.type === "DOWN").length;
-
-        return {
-            status: 200,
-            data: {
-                upvotes,
-                downvotes,
-                total: upvotes - downvotes,
-            },
-        };
+        const upvotes = votes.filter(v => v.type === 'UP').length;
+        const downvotes = votes.filter(v => v.type === 'DOWN').length;
+        return respond(200, { upvotes, downvotes, score: upvotes - downvotes });
     } catch (error) {
-        console.error("Vote count error:", error);
-        return { status: 500, message: "Server error." };
+        logError('getVoteCount', error);
+        return respond(500, null, "Internal server error");
     }
 };
 
 // Get user's vote for a specific question or answer
 export const getUserVote = async ({ userId, questionId = null, answerId = null }) => {
-    if (!userId || (!questionId && !answerId)) {
-        return { status: 400, message: "userId and either questionId or answerId is required." };
-    }
-
+    if (!userId || (!questionId && !answerId)) return respond(400, null, "userId and target id required");
     try {
         const userVote = await prisma.vote.findFirst({
-            where: {
-                userId: userId,
-                questionId: questionId || undefined,
-                answerId: answerId || undefined
-            },
+            where: { userId, questionId: questionId || undefined, answerId: answerId || undefined },
+            select: { type: true },
         });
-
-        return {
-            status: 200,
-            data: {
-                userVote: userVote ? userVote.type : null,
-            },
-        };
+        return respond(200, { userVote: userVote ? userVote.type : null });
     } catch (error) {
-        console.error("Get user vote error:", error);
-        return { status: 500, message: "Server error." };
+        logError('getUserVote', error);
+        return respond(500, null, "Internal server error");
     }
 };

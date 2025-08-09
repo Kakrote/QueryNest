@@ -107,7 +107,7 @@ const askQuestions = () => {
     }
 
     return (
-        <main className='mt-14'>
+    <main className='mt-14 max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8'>
             <div className='h-[80px] py-2 border-b'>
 
                 <div className='flex justify-between'>
@@ -122,7 +122,7 @@ const askQuestions = () => {
 
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-6 max-w-4xl mx-auto">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-4 sm:p-6 max-w-3xl mx-auto bg-white/80 backdrop-blur rounded-md border border-gray-200 shadow-sm">
                 {/* Title */}
                 <div>
                     <label className="block font-medium mb-2 text-gray-700">Question Title</label>
