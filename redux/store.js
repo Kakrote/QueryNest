@@ -12,6 +12,8 @@ import { combineReducers } from '@reduxjs/toolkit';
 const persistConfig = {
   key: 'root',
   storage,
+  // Only persist auth state to avoid issues with complex nested state
+  whitelist: ['auth'],
 };
 
 const rootReducer = combineReducers({
@@ -28,7 +30,9 @@ export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false,
+      serializableCheck: {
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+      },
     })
 });
 

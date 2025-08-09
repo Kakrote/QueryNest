@@ -79,7 +79,7 @@ const QuestionPage = () => {
     }
   };
   const question = useAppSelector((state) =>
-    state.question.questions.find((q) => String(q.id) === String(id))
+    state.question.questions?.find((q) => String(q.id) === String(id))
   );
 
   if (!question) return <div className="mt-20 text-center text-gray-500">Loading...</div>;

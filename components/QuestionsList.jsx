@@ -13,7 +13,7 @@ const QuestionsList = () => {
     const [filter, setFilter] = useState("latest");
     const [localPage, setLocalPage] = useState(1); // controlled local page state
     const [quickSearch, setQuickSearch] = useState('');
-    const { questions, loading, error, totalPages } = useAppSelector((s) => s.question);
+    const { questions = [], loading, error, totalPages } = useAppSelector((s) => s.question);
     const user = useAppSelector((s) => s.auth.user);
     const router = useRouter()
 
@@ -43,11 +43,11 @@ const QuestionsList = () => {
     };
 
     // Filter questions based on quick search
-    const filteredQuestions = questions.filter(question => 
+    const filteredQuestions = (questions || []).filter(question => 
         quickSearch === '' || 
         question.title.toLowerCase().includes(quickSearch.toLowerCase()) ||
         question.content.toLowerCase().includes(quickSearch.toLowerCase()) ||
-        question.tags.some(tag => tag.name.toLowerCase().includes(quickSearch.toLowerCase()))
+        (question.tags && question.tags.some(tag => tag.name.toLowerCase().includes(quickSearch.toLowerCase())))
     );
 
     return (
@@ -110,7 +110,7 @@ const QuestionsList = () => {
             )}
             {error && <p className='text-red-700'>{error}</p>}
 
-            {!loading && questions.length > 0 ? (
+            {!loading && questions && questions.length > 0 ? (
                 <>
                     {filteredQuestions.map((q) => (
                         <QuestionCard
