@@ -1,49 +1,67 @@
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/utils/slugify";
+import { validateAndSanitizeForm, formSchemas } from "@/utils/validation";
+import { sanitizeHtml } from "@/utils/sanitize";
 
-export const createQuestion = async ({ title, content, tags, authorId })=>{
-    if (!title || !content || !tags) return { status: 400, message: "fileds are required " };
-    // Groq moderation for question content
-    try {
-        const { moderateContent } = await import("@/utils/groqModeration");
-        const moderationResult = await moderateContent(content);
-        if (!moderationResult.isAppropriate) {
-            return {
-                status: 403,
-                message: `Question rejected: ${moderationResult.reason || 'Inappropriate content.'}`
-            };
-        }
-        const slug = slugify(title);
-        const tagRecords = await Promise.all(
-            tags.map(async (tagName) => {
-                return prisma.tag.upsert({
-                    where: { name: tagName },
-                    update: {},
-                    create: { name: tagName },
-                });
-            })
-        );
-        const question=await prisma.question.create({
-            data:{
-                title,
-                content,
-                slug,
-                authorId:authorId,
-                tags:{
-                    connect:tagRecords.map((tag)=>({id:tag.id})),
-                },
-            },
-            include:{
-                tags:true,
-            }
-        })
-        return {status:200,message:"Your Question has been Posted",question}
+const respond = (status, data = null, message = null, error = null) => ({ status, ...(message && { message }), ...(error && { error }), ...(data && data) });
+const logError = (scope, err) => console.error(`[${scope}]`, err?.message || err);
+
+export const createQuestion = async ({ title, content, tags, authorId }) => {
+  if (!authorId) return respond(401, null, "Authentication required");
+  const { isValid, sanitizedData, errors } = validateAndSanitizeForm({ title, content, tags: Array.isArray(tags) ? tags.join(",") : tags }, formSchemas.question);
+  if (!isValid) return respond(400, null, null, errors);
+  try {
+    // Sanitize rich HTML content server-side
+    const safeContent = sanitizeHtml(content);
+    const { moderateContent } = await import("@/utils/groqModeration");
+    const moderationResult = await moderateContent(safeContent);
+    if (!moderationResult.isAppropriate) {
+      return respond(403, null, `Question rejected: ${moderationResult.reason || 'Inappropriate content.'}`);
     }
-    catch(error){
-        console.log(error)
-        return {status:500,message:"Server Error !"}
+    // Normalize tags: trim, lowercase, unique
+    const rawTags = Array.isArray(tags) ? tags : sanitizedData.tags.split(/[,\s]+/);
+    const normalizedTags = [...new Set(rawTags.filter(Boolean).map(t => t.trim().toLowerCase()))].slice(0, 10);
+    if (!normalizedTags.length) return respond(400, null, "At least one tag required");
+
+    // Ensure unique slug (increment suffix on collision)
+    let baseSlug = slugify(title);
+    let uniqueSlug = baseSlug;
+    let counter = 1;
+    while (await prisma.question.findUnique({ where: { slug: uniqueSlug } })) {
+      uniqueSlug = `${baseSlug}-${counter++}`;
+      if (counter > 50) break; // fail-safe
     }
-}
+
+    const tagRecords = await Promise.all(
+      normalizedTags.map(async (tagName) =>
+        prisma.tag.upsert({ where: { name: tagName }, update: {}, create: { name: tagName } })
+      )
+    );
+
+    const question = await prisma.question.create({
+      data: {
+        title: sanitizedData.title,
+        content: safeContent,
+        slug: uniqueSlug,
+        authorId,
+        tags: {
+          connect: tagRecords.map((tag) => ({ id: tag.id })),
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        createdAt: true,
+        tags: true,
+      },
+    });
+    return respond(201, { question }, "Question posted");
+  } catch (error) {
+    logError('createQuestion', error);
+    return respond(500, null, "Internal server error");
+  }
+};
 
 export const getAllQuestions = async ({ page = 1, limit = 10, sort = "latest" }) => {
   try {
@@ -80,18 +98,15 @@ export const getAllQuestions = async ({ page = 1, limit = 10, sort = "latest" })
       prisma.question.count(),
     ]);
 
-    return {
-      status: 200,
-      data: {
-        questions,
-        total,
-        page,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return respond(200, { 
+      questions, 
+      total, 
+      page, 
+      totalPages: Math.ceil(total / limit) 
+    });
   } catch (error) {
-    console.error("Error fetching questions:", error);
-    return { status: 500, message: "Internal Server Error" };
+    logError('getAllQuestions', error);
+    return respond(500, null, "Internal server error");
   }
 };
 
@@ -116,15 +131,15 @@ export const getUserQuestions = async (userId) => {
       },
     });
 
-    return { status: 200, questions };
+  return respond(200, { questions });
   } catch (error) {
-    console.error("Error fetching user's questions:", error);
-    return { status: 500, message: "Internal Server Error" };
+  logError('getUserQuestions', error);
+  return respond(500, null, "Internal server error");
   }
 };
 
 
-export const getQuestionBySlug = async (slug) => {
+export const getQuestionBySlug = async (slug, { includeAnswers = true, answersLimit = 20 } = {}) => {
   try {
     const question = await prisma.question.findUnique({
       where: { slug },
@@ -133,18 +148,15 @@ export const getQuestionBySlug = async (slug) => {
           select: { id: true, name: true },
         },
         tags: true,
-        answers: {
+        ...(includeAnswers ? { answers: {
           include: {
-            author: {
-              select: { id: true, name: true },
-            },
-            comments: true,
+            author: { select: { id: true, name: true } },
+            comments: { take: 5, orderBy: { createdAt: 'desc' } },
             votes: true,
           },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
+          take: answersLimit,
+          orderBy: { createdAt: 'desc' },
+        }} : {}),
         comments: {
           include: {
             author: true,
@@ -154,18 +166,18 @@ export const getQuestionBySlug = async (slug) => {
       },
     });
 
-    if (!question) return { status: 404, message: "Question not found" };
-    return { status: 200, question };
+    if (!question) return respond(404, null, "Question not found");
+    return respond(200, { question });
   } catch (error) {
-    console.error("Error fetching question detail:", error);
-    return { status: 500, message: "Internal Server Error" };
+    logError('getQuestionBySlug', error);
+    return respond(500, null, "Internal server error");
   }
 };
 
 
 
 export const getQuestionsByTag = async (tagName) => {
-  if (!tagName) return { status: 400, message: "Tag is required." };
+  if (!tagName) return respond(400, null, "Tag is required");
 
   try {
     const questions = await prisma.question.findMany({
@@ -186,17 +198,17 @@ export const getQuestionsByTag = async (tagName) => {
       },
     });
 
-    return { status: 200, data: questions };
+  return respond(200, { data: questions });
   } catch (error) {
-    console.log("Tag filter error:", error);
-    return { status: 500, message: "Server error." };
+  logError('getQuestionsByTag', error);
+  return respond(500, null, "Internal server error");
   }
 };
 
 
 
 export const searchQuestions = async (query) => {
-  if (!query) return { status: 400, message: "Query is required." };
+  if (!query) return respond(400, null, "Query is required");
 
   try {
     const questions = await prisma.question.findMany({
@@ -216,16 +228,16 @@ export const searchQuestions = async (query) => {
       },
     });
 
-    return { status: 200, data: questions };
+  return respond(200, { data: questions });
   } catch (error) {
-    console.log("Search error:", error);
-    return { status: 500, message: "Server error." };
+  logError('searchQuestions', error);
+  return respond(500, null, "Internal server error");
   }
 };
 
 // Delete a question (only by the author)
 export const deleteQuestion = async ({ questionId, authorId }) => {
-  if (!questionId || !authorId) return { status: 400, message: "Question ID and Author ID are required." };
+  if (!questionId || !authorId) return respond(400, null, "Question ID and Author ID are required");
 
   try {
     // Find the question and verify ownership
@@ -238,17 +250,17 @@ export const deleteQuestion = async ({ questionId, authorId }) => {
       },
     });
 
-    if (!question) return { status: 404, message: "Question not found." };
-    if (question.authorId !== authorId) return { status: 403, message: "Unauthorized. You can only delete your own questions." };
+  if (!question) return respond(404, null, "Question not found");
+  if (question.authorId !== authorId) return respond(403, null, "You can only delete your own questions");
 
     // Delete the question (this will cascade delete related answers, comments, votes due to Prisma schema)
     await prisma.question.delete({
       where: { id: questionId },
     });
 
-    return { status: 200, message: "Question deleted successfully." };
+  return respond(200, null, "Question deleted successfully");
   } catch (error) {
-    console.error("Delete question error:", error);
-    return { status: 500, message: "Server error." };
+  logError('deleteQuestion', error);
+  return respond(500, null, "Internal server error");
   }
 };

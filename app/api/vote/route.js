@@ -1,8 +1,11 @@
 import { vote, getVoteCount, getUserVote } from "@/controllers/voteController";
 import { verifyAuth } from "@/middleware/auth";
+import { rateLimit } from "@/middleware/rateLimit";
 
 export async function POST(req) {
-    const user = await verifyAuth(req);
+  const limited = rateLimit(req, { action: 'vote' });
+  if (limited) return limited.response;
+  const user = await verifyAuth(req);
     if (!user) return new Response(JSON.stringify({ message: "Unauthorized " }), { status: 400 });
     try {
         const body = await req.json();
@@ -27,6 +30,8 @@ export async function POST(req) {
 
 
 export async function GET(req) {
+  const limited = rateLimit(req, { action: 'vote' });
+  if (limited) return limited.response;
   const { searchParams } = new URL(req.url);
   const questionId = searchParams.get("questionId");
   const answerId = searchParams.get("answerId");
