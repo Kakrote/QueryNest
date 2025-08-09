@@ -10,12 +10,17 @@ const VotingButtons = ({
   size = 'normal' // 'small', 'normal', 'large'
 }) => {
   const dispatch = useAppDispatch();
-  const { loading, votes, userVotes, error } = useAppSelector((state) => state.vote);
+  const { loading, votes = {}, userVotes = {}, error } = useAppSelector((state) => state.vote);
   const { user } = useAppSelector((state) => state.auth);
   
   const key = questionId ? `question_${questionId}` : `answer_${answerId}`;
-  const voteData = votes[key] || { upvotes: 0, downvotes: 0, total: initialVoteCount };
-  const userVote = userVotes[key];
+  const voteData = votes[key] || { 
+    upvotes: 0, 
+    downvotes: 0, 
+    total: initialVoteCount,
+    score: 0
+  };
+  const userVote = userVotes[key] || null;
 
   // Size configurations
   const sizeConfig = {
@@ -88,12 +93,12 @@ const VotingButtons = ({
         />
       </button>
 
-      {/* Vote Count */}
+      {/* Vote Count - Show net score (upvotes - downvotes) */}
       <div className={`font-semibold ${config.text} ${
-        voteData.total > 0 ? 'text-green-600' : 
-        voteData.total < 0 ? 'text-red-500' : 'text-gray-600'
+        voteData.score > 0 ? 'text-green-600' : 
+        voteData.score < 0 ? 'text-red-500' : 'text-gray-600'
       }`}>
-        {voteData.total}
+        {voteData.score || (voteData.upvotes - voteData.downvotes) || 0}
       </div>
 
       {/* Downvote Button */}

@@ -4,9 +4,9 @@ import axios from 'axios';
 // Async thunk for voting on questions/answers
 export const submitVote = createAsyncThunk(
   'vote/submitVote',
-  async ({ voteType, questionId, answerId }, { rejectWithValue }) => {
+  async ({ voteType, questionId, answerId }, { rejectWithValue, getState }) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getState().auth.token;
       if (!token) {
         throw new Error('Authentication required');
       }
@@ -137,14 +137,15 @@ const voteSlice = createSlice({
       })
       .addCase(getVoteCount.fulfilled, (state, action) => {
         state.loading = false;
-        const { questionId, answerId, data } = action.payload;
+        const { questionId, answerId, upvotes = 0, downvotes = 0, score = 0 } = action.payload;
         const key = questionId ? `question_${questionId}` : `answer_${answerId}`;
         
         // Store vote counts
         state.votes[key] = {
-          upvotes: data.upvotes || 0,
-          downvotes: data.downvotes || 0,
-          total: data.total || 0,
+          upvotes,
+          downvotes,
+          total: upvotes + downvotes,
+          score, // net score (upvotes - downvotes)
         };
       })
       .addCase(getVoteCount.rejected, (state, action) => {
@@ -157,14 +158,17 @@ const voteSlice = createSlice({
         // Don't show loading for user vote checks
       })
       .addCase(getUserVote.fulfilled, (state, action) => {
-        const { questionId, answerId, data } = action.payload;
+        const { questionId, answerId, userVote } = action.payload;
         const key = questionId ? `question_${questionId}` : `answer_${answerId}`;
         
-        // Store user's vote
-        if (data.userVote) {
+        // Store user's vote (userVote can be 'UP', 'DOWN', or null)
+        if (userVote) {
           state.userVotes[key] = {
-            type: data.userVote,
+            type: userVote,
           };
+        } else {
+          // Remove any existing vote if userVote is null
+          delete state.userVotes[key];
         }
       })
       .addCase(getUserVote.rejected, (state, action) => {
