@@ -50,11 +50,11 @@ const QuestionCard = ({ question, onClick, showDelete = false }) => {
       {/* Voting + Answer count */}
       <div className='flex items-center justify-between p-2'>
         <div className='flex space-x-5 text-[10px] items-center'>
-          <div className={`flex items-center gap-1 ${vote > 0 ? 'text-green-600' : vote < 0 ? 'text-red-500' : 'text-gray-500'}`}>
+          <div className={`flex items-center gap-1 ${Number(vote) > 0 ? 'text-green-600' : Number(vote) < 0 ? 'text-red-500' : 'text-gray-500'}`}>
             <ThumbsUp size={12} />
-            <span>{vote} Vote{vote !== 1 ? 's' : ''}</span>
+            <span>{Number(vote) || 0} Vote{Number(vote) !== 1 ? 's' : ''}</span>
           </div>
-          <span className='text-blue-600'>{answers} Answer{answers !== 1 ? 's' : ''}</span>
+          <span className='text-blue-600'>{Number(answers) || 0} Answer{Number(answers) !== 1 ? 's' : ''}</span>
         </div>
         
         <div className="text-xs text-gray-500">

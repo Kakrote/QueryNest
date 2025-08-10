@@ -65,13 +65,61 @@ export const createQuestion = async ({ title, content, tags, authorId }) => {
 
 export const getAllQuestions = async ({ page = 1, limit = 10, sort = "latest" }) => {
   try {
-    const skip = (page - 1) * limit;
-
-    // 🔁 Dynamic sort logic
-    let orderBy;
+    // For 'liked' sort, we need to fetch all questions first, calculate scores, then sort and paginate
     if (sort === "liked") {
-      orderBy = { vote: { _count: "desc" } };
-    } else if (sort === "frequent") {
+      const [allQuestions, total] = await Promise.all([
+        prisma.question.findMany({
+          include: {
+            author: { select: { id: true, name: true } },
+            tags: true,
+            vote: true, // Get all votes to calculate net score
+            _count: {
+              select: {
+                answers: true,
+                comments: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" }, // Default order for base query
+        }),
+        prisma.question.count(),
+      ]);
+
+      // Calculate net vote scores for each question
+      const questionsWithScores = allQuestions.map(question => {
+        const upvotes = question.vote.filter(v => v.type === 'UP').length;
+        const downvotes = question.vote.filter(v => v.type === 'DOWN').length;
+        const score = upvotes - downvotes;
+        
+        return {
+          ...question,
+          _count: {
+            ...question._count,
+            vote: score // Net score
+          },
+          netScore: score // Add explicit net score for sorting
+        };
+      });
+
+      // Sort by net score (highest first)
+      questionsWithScores.sort((a, b) => b.netScore - a.netScore);
+
+      // Apply pagination after sorting
+      const skip = (page - 1) * limit;
+      const paginatedQuestions = questionsWithScores.slice(skip, skip + limit);
+
+      return respond(200, { 
+        questions: paginatedQuestions, 
+        total, 
+        page, 
+        totalPages: Math.ceil(total / limit) 
+      });
+    }
+
+    // For other sorts, use database-level sorting
+    const skip = (page - 1) * limit;
+    let orderBy;
+    if (sort === "frequent") {
       orderBy = { answers: { _count: "desc" } };
     } else {
       orderBy = { createdAt: "desc" }; // default: latest
@@ -84,12 +132,11 @@ export const getAllQuestions = async ({ page = 1, limit = 10, sort = "latest" })
         include: {
           author: { select: { id: true, name: true } },
           tags: true,
-          // answers: true,
+          vote: true, // Get all votes to calculate net score
           _count: {
             select: {
               answers: true,
               comments: true,
-              vote: true,
             },
           },
         },
@@ -98,8 +145,23 @@ export const getAllQuestions = async ({ page = 1, limit = 10, sort = "latest" })
       prisma.question.count(),
     ]);
 
+    // Calculate net vote scores for each question
+    const questionsWithScores = questions.map(question => {
+      const upvotes = question.vote.filter(v => v.type === 'UP').length;
+      const downvotes = question.vote.filter(v => v.type === 'DOWN').length;
+      const score = upvotes - downvotes;
+      
+      return {
+        ...question,
+        _count: {
+          ...question._count,
+          vote: score // Override with net score instead of total count
+        }
+      };
+    });
+
     return respond(200, { 
-      questions, 
+      questions: questionsWithScores, 
       total, 
       page, 
       totalPages: Math.ceil(total / limit) 
@@ -121,20 +183,35 @@ export const getUserQuestions = async (userId) => {
       include: {
         author: { select: { id: true, name: true } },
         tags: true,
+        vote: true, // Get all votes to calculate net score
         _count: {
           select: {
             answers: true,
             comments: true,
-            vote: true,
           },
         },
       },
     });
 
-  return respond(200, { questions });
+    // Calculate net vote scores for each question
+    const questionsWithScores = questions.map(question => {
+      const upvotes = question.vote.filter(v => v.type === 'UP').length;
+      const downvotes = question.vote.filter(v => v.type === 'DOWN').length;
+      const score = upvotes - downvotes;
+      
+      return {
+        ...question,
+        _count: {
+          ...question._count,
+          vote: score // Override with net score instead of total count
+        }
+      };
+    });
+
+    return respond(200, { questions: questionsWithScores });
   } catch (error) {
-  logError('getUserQuestions', error);
-  return respond(500, null, "Internal server error");
+    logError('getUserQuestions', error);
+    return respond(500, null, "Internal server error");
   }
 };
 
@@ -153,6 +230,11 @@ export const getQuestionBySlug = async (slug, { includeAnswers = true, answersLi
             author: { select: { id: true, name: true } },
             comments: { take: 5, orderBy: { createdAt: 'desc' } },
             votes: true,
+            _count: {
+              select: {
+                votes: true,
+              },
+            },
           },
           take: answersLimit,
           orderBy: { createdAt: 'desc' },
@@ -163,11 +245,49 @@ export const getQuestionBySlug = async (slug, { includeAnswers = true, answersLi
           },
         },
         vote: true,
+        _count: {
+          select: {
+            answers: true,
+          },
+        },
       },
     });
 
     if (!question) return respond(404, null, "Question not found");
-    return respond(200, { question });
+    
+    // Calculate net vote score for the question
+    const upvotes = question.vote.filter(v => v.type === 'UP').length;
+    const downvotes = question.vote.filter(v => v.type === 'DOWN').length;
+    const questionScore = upvotes - downvotes;
+    
+    // Calculate net vote scores for answers if included
+    let processedAnswers = question.answers;
+    if (includeAnswers && question.answers) {
+      processedAnswers = question.answers.map(answer => {
+        const answerUpvotes = answer.votes.filter(v => v.type === 'UP').length;
+        const answerDownvotes = answer.votes.filter(v => v.type === 'DOWN').length;
+        const answerScore = answerUpvotes - answerDownvotes;
+        
+        return {
+          ...answer,
+          _count: {
+            ...answer._count,
+            vote: answerScore
+          }
+        };
+      });
+    }
+    
+    const processedQuestion = {
+      ...question,
+      answers: processedAnswers,
+      _count: {
+        ...question._count,
+        vote: questionScore
+      }
+    };
+    
+    return respond(200, { question: processedQuestion });
   } catch (error) {
     logError('getQuestionBySlug', error);
     return respond(500, null, "Internal server error");

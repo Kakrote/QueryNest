@@ -33,8 +33,10 @@ export const submitVote = createAsyncThunk(
         answerId,
       };
     } catch (error) {
+      const message = error.response?.data?.message || error.message || 'Failed to submit vote';
+      console.error('Vote submission error:', message);
       return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to submit vote'
+        typeof message === 'string' ? message : 'Failed to submit vote'
       );
     }
   }
@@ -117,14 +119,16 @@ const voteSlice = createSlice({
       })
       .addCase(submitVote.fulfilled, (state, action) => {
         state.loading = false;
-        const { questionId, answerId, voteType, vote } = action.payload;
-        const key = questionId ? `question_${questionId}` : `answer_${answerId}`;
-        
-        // Store user's vote
-        state.userVotes[key] = {
-          type: voteType,
-          voteId: vote?.id,
-        };
+        if (action.payload && typeof action.payload === 'object') {
+          const { questionId, answerId, voteType, vote } = action.payload;
+          const key = questionId ? `question_${questionId}` : `answer_${answerId}`;
+          
+          // Store user's vote
+          state.userVotes[key] = {
+            type: voteType,
+            voteId: vote?.id,
+          };
+        }
       })
       .addCase(submitVote.rejected, (state, action) => {
         state.loading = false;
@@ -137,16 +141,23 @@ const voteSlice = createSlice({
       })
       .addCase(getVoteCount.fulfilled, (state, action) => {
         state.loading = false;
-        const { questionId, answerId, upvotes = 0, downvotes = 0, score = 0 } = action.payload;
-        const key = questionId ? `question_${questionId}` : `answer_${answerId}`;
-        
-        // Store vote counts
-        state.votes[key] = {
-          upvotes,
-          downvotes,
-          total: upvotes + downvotes,
-          score, // net score (upvotes - downvotes)
-        };
+        if (action.payload && typeof action.payload === 'object') {
+          const { questionId, answerId, upvotes = 0, downvotes = 0, score = 0 } = action.payload;
+          const key = questionId ? `question_${questionId}` : `answer_${answerId}`;
+          
+          // Ensure all values are numbers
+          const numUpvotes = Number(upvotes) || 0;
+          const numDownvotes = Number(downvotes) || 0;
+          const numScore = Number(score) || (numUpvotes - numDownvotes);
+          
+          // Store vote counts
+          state.votes[key] = {
+            upvotes: numUpvotes,
+            downvotes: numDownvotes,
+            total: numUpvotes + numDownvotes,
+            score: numScore, // net score (upvotes - downvotes)
+          };
+        }
       })
       .addCase(getVoteCount.rejected, (state, action) => {
         state.loading = false;
@@ -158,17 +169,19 @@ const voteSlice = createSlice({
         // Don't show loading for user vote checks
       })
       .addCase(getUserVote.fulfilled, (state, action) => {
-        const { questionId, answerId, userVote } = action.payload;
-        const key = questionId ? `question_${questionId}` : `answer_${answerId}`;
-        
-        // Store user's vote (userVote can be 'UP', 'DOWN', or null)
-        if (userVote) {
-          state.userVotes[key] = {
-            type: userVote,
-          };
-        } else {
-          // Remove any existing vote if userVote is null
-          delete state.userVotes[key];
+        if (action.payload && typeof action.payload === 'object') {
+          const { questionId, answerId, userVote } = action.payload;
+          const key = questionId ? `question_${questionId}` : `answer_${answerId}`;
+          
+          // Store user's vote (userVote can be 'UP', 'DOWN', or null)
+          if (userVote) {
+            state.userVotes[key] = {
+              type: userVote,
+            };
+          } else {
+            // Remove any existing vote if userVote is null
+            delete state.userVotes[key];
+          }
         }
       })
       .addCase(getUserVote.rejected, (state, action) => {

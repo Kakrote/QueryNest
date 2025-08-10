@@ -14,12 +14,24 @@ const QuestionsList = () => {
     const [localPage, setLocalPage] = useState(1); // controlled local page state
     const [quickSearch, setQuickSearch] = useState('');
     const { questions = [], loading, error, totalPages } = useAppSelector((s) => s.question);
+    const { votes } = useAppSelector((s) => s.vote); // Listen to vote changes
     const user = useAppSelector((s) => s.auth.user);
     const router = useRouter()
 
     useEffect(() => {
         dispatch(fetchQuestions({ filter, page: localPage, limit: pageSize }))
     }, [filter, localPage]);
+
+    // Refresh questions when votes change
+    useEffect(() => {
+        if (Object.keys(votes).length > 0) {
+            // Small delay to ensure backend is updated
+            const timeoutId = setTimeout(() => {
+                dispatch(fetchQuestions({ filter, page: localPage, limit: pageSize }))
+            }, 1000);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [votes, filter, localPage, dispatch]);
 
     useEffect(() => {
         setLocalPage(1); // Reset to page 1 if filter changes
