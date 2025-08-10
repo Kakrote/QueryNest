@@ -39,7 +39,12 @@ export const getVoteCount = async ({ questionId = null, answerId = null }) => {
         });
         const upvotes = votes.filter(v => v.type === 'UP').length;
         const downvotes = votes.filter(v => v.type === 'DOWN').length;
-        return respond(200, { upvotes, downvotes, score: upvotes - downvotes });
+        const score = upvotes - downvotes;
+        return respond(200, { 
+            upvotes: Number(upvotes), 
+            downvotes: Number(downvotes), 
+            score: Number(score) 
+        });
     } catch (error) {
         logError('getVoteCount', error);
         return respond(500, null, "Internal server error");

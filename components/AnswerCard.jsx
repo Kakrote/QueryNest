@@ -28,7 +28,7 @@ const AnswerCard = ({ answer, onClick, onRefresh }) => {
     _count = {},
   } = answer;
 
-  const voteCount = _count.vote || votes.length;
+  const voteCount = Number(_count.vote) || Number(votes.length) || 0;
 
   useEffect(() => {
     if (updateSuccess) {
@@ -126,7 +126,7 @@ const AnswerCard = ({ answer, onClick, onRefresh }) => {
         {/* Voting Section */}
         <VotingButtons 
           answerId={id} 
-          initialVoteCount={voteCount}
+          initialVoteCount={Number(voteCount) || 0}
           size="small"
         />
 

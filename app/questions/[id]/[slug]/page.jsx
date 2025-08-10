@@ -127,8 +127,8 @@ const QuestionPage = () => {
 
         {/* Vote & Answer count */}
         <div className='mt-2 flex space-x-6 text-gray-700 text-[13px]'>
-          <span>{vote} Vote{vote !== 1 && 's'}</span>
-          <span>{answers} Answer{answers !== 1 && 's'}</span>
+          <span>{Number(vote) || 0} Vote{Number(vote) !== 1 && 's'}</span>
+          <span>{Number(answers) || 0} Answer{Number(answers) !== 1 && 's'}</span>
         </div>
       </section>
 
@@ -137,7 +137,7 @@ const QuestionPage = () => {
         {/* Left Voting Panel */}
         <VotingButtons 
           questionId={id} 
-          initialVoteCount={vote}
+          initialVoteCount={Number(vote) || 0}
           size="normal"
         />
 

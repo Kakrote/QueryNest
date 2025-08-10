@@ -24,7 +24,7 @@ const Answer = ({ answer }) => {
     _count = {},
   } = answer;
 
-  const voteCount = _count.vote || 0;
+  const voteCount = Number(_count.vote) || 0;
   const isOwner = user && user.id === author?.id;
 
   useEffect(() => {
@@ -87,7 +87,7 @@ const Answer = ({ answer }) => {
         {/* Voting Section */}
         <VotingButtons 
           answerId={id} 
-          initialVoteCount={voteCount}
+          initialVoteCount={Number(voteCount) || 0}
           size="small"
         />
 

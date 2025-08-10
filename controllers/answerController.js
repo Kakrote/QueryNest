@@ -124,7 +124,21 @@ export const getAnswersByQuestionId = async (questionId) => {
       },
     });
 
-    return { status: 200, answers };
+    // Calculate net vote scores for each answer
+    const answersWithScores = answers.map(answer => {
+      const upvotes = answer.votes.filter(v => v.type === 'UP').length;
+      const downvotes = answer.votes.filter(v => v.type === 'DOWN').length;
+      const score = upvotes - downvotes;
+      
+      return {
+        ...answer,
+        _count: {
+          vote: score // Add net score to _count for consistency
+        }
+      };
+    });
+
+    return { status: 200, answers: answersWithScores };
   } catch (error) {
     console.error(error);
     return { status: 500, message: "Server error!" };
@@ -169,7 +183,21 @@ export const getAnswersByUserId = async (userId) => {
       },
     });
 
-    return { status: 200, answers };
+    // Calculate net vote scores for each answer
+    const answersWithScores = answers.map(answer => {
+      const upvotes = answer.votes.filter(v => v.type === 'UP').length;
+      const downvotes = answer.votes.filter(v => v.type === 'DOWN').length;
+      const score = upvotes - downvotes;
+      
+      return {
+        ...answer,
+        _count: {
+          vote: score // Add net score to _count for consistency
+        }
+      };
+    });
+
+    return { status: 200, answers: answersWithScores };
   } catch (error) {
     console.error(error);
     return { status: 500, message: "Server error!" };
